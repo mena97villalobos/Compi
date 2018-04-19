@@ -287,6 +287,32 @@ public class Parser {
                 }
             }
             break;
+
+            case Token.LOOP:
+                acceptIt();
+                if(currentToken.kind == Token.WHILE){
+                    acceptIt();
+                    Expression eAST = parseExpression();
+                    accept(Token.DO);
+                    Command cAST = parseCommand();
+                    accept(Token.END);
+                    commandAST = new
+                }
+                else if(currentToken.kind == Token.UNTIL){
+
+                }
+                else if(currentToken.kind == Token.DO){
+
+                }
+                else if(currentToken.kind == Token.FOR){
+
+                }
+                else{
+                    syntacticError("\"%\" Error despues de loop",
+                            currentToken.spelling);
+                    break;
+                }
+            /* Eliminado por proyecto 1
             case Token.BEGIN:
                 acceptIt();
                 commandAST = parseCommand();
@@ -302,6 +328,7 @@ public class Parser {
                 commandAST = new LetCommand(dAST, cAST, commandPos);
             }
             break;
+
 
             case Token.IF: {
                 acceptIt();
@@ -324,6 +351,7 @@ public class Parser {
                 commandAST = new WhileCommand(eAST, cAST, commandPos);
             }
             break;
+            */
 
             case Token.SEMICOLON:
             case Token.END:
