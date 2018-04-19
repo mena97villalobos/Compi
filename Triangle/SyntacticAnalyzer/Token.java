@@ -37,8 +37,8 @@ final class Token extends Object {
     ELSE = 8,
     ELSIF = 9,  //PROYECTO 1
     END = 10,
-    FUNC = 11,
-    FOR = 12, //PROYECTO 1
+    FOR = 11,
+    FUNC = 12, //PROYECTO 1
     IF = 13,
     IN = 14,
     LET = 15,

@@ -299,12 +299,48 @@ public class Parser {
                     commandAST = new
                 }
                 else if(currentToken.kind == Token.UNTIL){
-
+                    Expression eAST = parseExpression();
+                    accept(Token.DO);
+                    Command cAST = parseCommand();
+                    accept(Token.END);
+                    finish(commandPos);
+                    commandAST = new loopUntilDo(eAST,cAST,commandPos); // TODO HACER ARBOL DE SINTAXIS ABSTRACTA
                 }
                 else if(currentToken.kind == Token.DO){
+                    acceptIt();
+                    Command cAST = parseCommand();
+                    Expression eAST = null;
+                    if(currentToken.kind == Token.WHILE){
+                        acceptIt();
+                        eAST = parseExpression();
+                        accept(Token.END);
+                        finish(commandPos);
+                        commandAST = new loopWhileCommand(cAST,eAST,commandPos); //TODO HACER ARBOL DE SINTAXIS ABSTRACTA
+                    }
+                    else if(currentToken.kind ==Token.UNTIL){
+                        acceptIt();
+                        eAST = parseExpression();
+                        accept(Token.END);
+                        finish(commandPos);
+                        commandAST = new loopUntilCommand(cAST,eAST,commandPos); // TODO HACER ARBOL DE SINTAXIS ABSTRACTA
+                    }
 
+                    else
+                        syntacticError("\"%\" Error, se esperaba UNTIL O WHILE",
+                                currentToken.spelling);
                 }
                 else if(currentToken.kind == Token.FOR){
+                    acceptIt();
+                    Identifier iAST = parseIdentifier();
+                    accept(Token.BECOMES);
+                    Expression eAST = parseExpression();
+                    accept(Token.TO);
+                    Expression eAST2 = parseExpression();
+                    accept(Token.DO);
+                    Command cAST = parseCommand();
+                    accept(Token.END);
+                    finish(commandPos);
+                    commandAST = new loopForCommand(iAST,eAST,eAST2,cAST); //TODO HACER ARBOL DE SINTAXIS ABSTRACTA
 
                 }
                 else{
