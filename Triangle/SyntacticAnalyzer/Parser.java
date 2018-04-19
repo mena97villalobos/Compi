@@ -696,10 +696,23 @@ public class Parser {
             case Token.VAR: {
                 acceptIt();
                 Identifier iAST = parseIdentifier();
-                accept(Token.COLON);
-                TypeDenoter tAST = parseTypeDenoter();
-                finish(declarationPos);
-                declarationAST = new VarDeclaration(iAST, tAST, declarationPos);
+
+                if(currentToken.kind ==Token.COLON){
+                    accept(Token.COLON);
+                    TypeDenoter tAST = parseTypeDenoter();
+                    finish(declarationPos);
+                    declarationAST = new VarDeclaration(iAST, tAST, declarationPos);
+                }else if(currentToken.kind == Token.BECOMES ){
+                    acceptIt();
+                    Expression eAST = parseExpression();
+                    finish(declarationPos);
+                    declarationAST = new VarInitialized(iAST,eAST,declarationPos);// TODO IMPLEMENTAR ARBOL SINTAXIS, ESTE ES EL DE VARIABLE INICIALIZADA
+                }
+                else
+                    syntacticError("\"%\" Error al inicializar o declarar una variable",
+                            currentToken.spelling);
+
+
             }
             break;
 
