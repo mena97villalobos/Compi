@@ -27,6 +27,7 @@ public interface Visitor {
   //TODO Agregado proyecto 1 REVISAR
   public abstract Object visitDoWhileCommand(DoWhileCommand ast, Object o);
   public abstract Object visitUntilCommand(UntilCommand ast, Object o);
+  public abstract Object visitElsifCommand(ElsifCommand ast, Object o);
 
   // Expressions
   public abstract Object visitArrayExpression(ArrayExpression ast, Object o);

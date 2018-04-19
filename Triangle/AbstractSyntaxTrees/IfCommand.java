@@ -22,8 +22,8 @@ public class IfCommand extends Command {
                     SourcePosition thePosition) {
     super (thePosition);
     E = eAST;
-    C1 = c1AST;
-    C2 = c2AST;
+    C1 = c1AST; //Comand del if
+    C2 = c2AST; //Command del else y el opcional del elif
   }
 
   public Object visit(Visitor v, Object o) {

@@ -104,6 +104,16 @@ public final class Checker implements Visitor {
     return null;
   }
 
+  @Override
+  public Object visitElsifCommand(ElsifCommand ast, Object o) {
+    TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
+    if (! eType.equals(StdEnvironment.booleanType))
+      reporter.reportError("Boolean expression expected here", "", ast.E.position);
+    ast.C1.visit(this, null);
+    ast.C2.visit(this, null);
+    return null;
+  }
+
   // Expressions
 
   // Returns the TypeDenoter denoting the type of the expression. Does

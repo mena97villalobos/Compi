@@ -303,26 +303,38 @@ public class Parser {
 
 
             case Token.IF: {
+                //TODO revisar la recurson que hace el elsif para ver que el arbol quede bien la solucion esta bien cochina :V
                 acceptIt();
                 Expression e1AST = parseExpression();
                 accept(Token.THEN);
                 Command c1AST = parseCommand();
-                //ArrayList<Command> commandsASTs = new ArrayList<>();
+                //commandAST = new IfCommand(e1AST, c1AST, null, commandPos);
+                Command c2AST = null;
+                ElsifCommand elifCommandAux = null;
                 while(currentToken.kind == Token.ELSIF){
                     acceptIt();
                     Expression e2AST = parseExpression();
                     accept(Token.THEN);
-                    Command cAST_TEMP = parseCommand();
+                    Command cAUX = parseCommand();
                     finish(commandPos);
-                    //commandAST = new Comm TODO constructor de Command
-                    //commandsASTs.add(cAST_elsif);
+                    if(elifCommandAux == null)
+                        elifCommandAux = new ElsifCommand(e2AST, cAUX, null, commandPos);
+                    else{
+                        ElsifCommand aux = new ElsifCommand(e2AST, c2AST, null, commandPos);
+                        elifCommandAux.C2 = aux;
+                        elifCommandAux = aux;
+                    }
                 }
                 accept(Token.ELSE);
-                Command c2AST = parseCommand();
+                if(elifCommandAux != null) {//Revisa si no hay elsif
+                    elifCommandAux.C2 = parseCommand(); //Command del end
+                    c2AST = elifCommandAux;
+                }
+                else
+                    c2AST = parseCommand();
                 accept(Token.END);
                 finish(commandPos);
-                //TODO cambiar por llamada a constructor de AST nuevo
-                // commandAST = new IfCommand(eAST, c1AST, c2AST, commandPos);
+                commandAST = new IfCommand(e1AST, c1AST, c2AST, commandPos);
             }
             break;
             /* Eliminado por proyecto 1
