@@ -82,6 +82,8 @@ import Triangle.AbstractSyntaxTrees.Vname;
 import Triangle.AbstractSyntaxTrees.VnameExpression;
 import Triangle.AbstractSyntaxTrees.WhileCommand;
 
+import java.util.ArrayList;
+
 public class Parser {
 
     private Scanner lexicalAnalyser;
@@ -296,7 +298,7 @@ public class Parser {
                     accept(Token.DO);
                     Command cAST = parseCommand();
                     accept(Token.END);
-                    commandAST = new
+                    //commandAST = new
                 }
                 else if(currentToken.kind == Token.UNTIL){
                     Expression eAST = parseExpression();
@@ -348,6 +350,30 @@ public class Parser {
                             currentToken.spelling);
                     break;
                 }
+
+            case Token.IF: {
+                acceptIt();
+                Expression e1AST = parseExpression();
+                accept(Token.THEN);
+                Command c1AST = parseCommand();
+                //ArrayList<Command> commandsASTs = new ArrayList<>();
+                while(currentToken.kind == Token.ELSIF){
+                    acceptIt();
+                    Expression e2AST = parseExpression();
+                    accept(Token.THEN);
+                    Command cAST_TEMP = parseCommand();
+                    finish(commandPos);
+                    //commandAST = new Comm TODO constructor de Command
+                    //commandsASTs.add(cAST_elsif);
+                }
+                accept(Token.ELSE);
+                Command c2AST = parseCommand();
+                accept(Token.END);
+                finish(commandPos);
+                //TODO cambiar por llamada a constructor de AST nuevo
+                // commandAST = new IfCommand(eAST, c1AST, c2AST, commandPos);
+            }
+            break;
             /* Eliminado por proyecto 1
             case Token.BEGIN:
                 acceptIt();
