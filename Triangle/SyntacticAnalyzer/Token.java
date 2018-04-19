@@ -63,18 +63,19 @@ final class Token extends Object {
     COMMA = 32,
     BECOMES = 33,
     IS = 34,
+    DOUBLE_DOTS = 35, // PROYECTO 1
 
     // brackets...
-    LPAREN = 35,
-    RPAREN = 36,
-    LBRACKET = 37,
-    RBRACKET = 38,
-    LCURLY = 39,
-    RCURLY = 40,
+    LPAREN = 36,
+    RPAREN = 37,
+    LBRACKET = 38,
+    RBRACKET = 39,
+    LCURLY = 40,
+    RCURLY = 41,
 
     // special tokens...
-    EOT = 41,
-    ERROR = 42;
+    EOT = 42,
+    ERROR = 43;
 
     private final static int
     firstReservedWord = Token.AND, //Token.ARRAY, Cambia por proyecto 1 agregar token AND antes de ARRAY
@@ -117,6 +118,7 @@ final class Token extends Object {
             ",",
             ":=",
             "~",
+            "..", //PROYECTO 1
             "(",
             ")",
             "[",

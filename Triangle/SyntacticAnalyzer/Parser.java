@@ -1072,11 +1072,48 @@ public class Parser {
 
             case Token.ARRAY: {
                 acceptIt();
-                IntegerLiteral ilAST = parseIntegerLiteral();
-                accept(Token.OF);
+                IntegerLiteral il1AST = parseIntegerLiteral();
+                if(currentToken.kind == Token.OF){
+                    acceptIt();
+                    TypeDenoter tAST = parseTypeDenoter();
+                    finish(typePos);
+                    typeAST = new ArrayTypeDenoter(il1AST, tAST, typePos); //TODO cambiar AST
+                } else if(currentToken.kind == Token.DOUBLE_DOTS){
+                    IntegerLiteral il2AST = parseIntegerLiteral();
+                    accept(Token.OF);
+                    TypeDenoter tAST = parseTypeDenoter();
+                    finish(typePos);
+                    typeAST = new ArrayTypeDenoterStatic(il1AST, il2AST, tAST, typePos); //TODO agregar AST para Array con ..
+                }
+                /*accept(Token.OF);
                 TypeDenoter tAST = parseTypeDenoter();
                 finish(typePos);
                 typeAST = new ArrayTypeDenoter(ilAST, tAST, typePos);
+                */
+                /*
+                else if(currentToken.kind == Token.DO){
+                    acceptIt();
+                    Command cAST = parseCommand();
+                    Expression eAST = null;
+                    if(currentToken.kind == Token.WHILE){
+                        acceptIt();
+                        eAST = parseExpression();
+                        accept(Token.END);
+                        finish(commandPos);
+                        commandAST = new loopWhileCommand(cAST,eAST,commandPos); //TODO HACER ARBOL DE SINTAXIS ABSTRACTA
+                    }
+                    else if(currentToken.kind ==Token.UNTIL){
+                        acceptIt();
+                        eAST = parseExpression();
+                        accept(Token.END);
+                        finish(commandPos);
+                        commandAST = new loopUntilCommand(cAST,eAST,commandPos); // TODO HACER ARBOL DE SINTAXIS ABSTRACTA
+                    }
+
+                    else
+                        syntacticError("\"%\" Error, se esperaba UNTIL O WHILE",
+                                currentToken.spelling);
+                 */
             }
             break;
 
