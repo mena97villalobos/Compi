@@ -82,6 +82,8 @@ import Triangle.AbstractSyntaxTrees.Vname;
 import Triangle.AbstractSyntaxTrees.VnameExpression;
 import Triangle.AbstractSyntaxTrees.WhileCommand;
 
+import java.awt.event.ComponentAdapter;
+
 import java.util.ArrayList;
 
 public class Parser {
@@ -298,7 +300,8 @@ public class Parser {
                     accept(Token.DO);
                     Command cAST = parseCommand();
                     accept(Token.END);
-                    //commandAST = new
+                    finish(commandPos);
+                    // commandAST = new Falta a
                 }
                 else if(currentToken.kind == Token.UNTIL){
                     Expression eAST = parseExpression();
@@ -350,6 +353,17 @@ public class Parser {
                             currentToken.spelling);
                     break;
                 }
+
+            case Token.LET: {
+                acceptIt();
+                Declaration dAST = parseDeclaration();
+                accept(Token.IN);
+                Command cAST = parseCommand();
+                finish(commandPos);
+                commandAST = new LetCommand(dAST, cAST, commandPos);
+            }
+            break;
+
 
             case Token.IF: {
                 acceptIt();
@@ -675,6 +689,80 @@ public class Parser {
         return declarationAST;
     }
 
+
+    /* Agregado PROYECTO 1 PARSE COMPOUND DECLARATION*/
+    Declaration parseCompoundDeclaration() throws SyntaxError {
+        Declaration declarationAST = null;
+        SourcePosition compoundPos = new SourcePosition();
+        start(compoundPos);
+        switch (currentToken.kind){
+            //Caso de un compound Declaration
+            case Token.CONST:
+            case Token.VAR:
+            case Token.PROC:
+            case Token.FUNC:
+            case Token.TYPE:
+                declarationAST = parseSingleDeclaration();
+                //TODO ver si va un finish
+                break;
+            case Token.REC: {
+                acceptIt();
+                //TODO parse ProcFuncs
+                accept(Token.END);
+            }
+            case Token.PRIVATE: {
+                acceptIt();
+                Declaration d2AST = parseDeclaration();
+                accept(Token.IN);
+                Declaration d3AST = parseDeclaration();
+                accept(Token.END);
+                //TODO ver si va un finish
+            }
+        }
+        return declarationAST;
+    }
+
+    void parseProcFunc() throws SyntaxError{ //TODO crear AST para proc funcs
+        //TODO falta juntar todo en un AST y devolverlo
+        SourcePosition procFuncsPos = new SourcePosition();
+        start(procFuncsPos);
+        switch (currentToken.kind){
+            case Token.PROC: {
+                acceptIt();
+                accept(Token.IDENTIFIER);
+                accept(Token.LPAREN);
+                FormalParameter formalParameter = parseFormalParameter();
+                accept(Token.RPAREN);
+                accept(Token.IS);
+                Command command = parseCommand();
+                accept(Token.END);
+            }
+            case Token.FUNC: {
+                acceptIt();
+                accept(Token.IDENTIFIER);
+                accept(Token.LPAREN);
+                FormalParameter formalParameter = parseFormalParameter();
+                accept(Token.RPAREN);
+                accept(Token.COLON);
+                TypeDenoter typeDenoter = parseTypeDenoter();
+                accept(Token.IS);
+                Expression expression = parseExpression();
+            }
+        }
+    }
+
+    void parseProcFuncs() throws SyntaxError{
+        //TODO faltan los AST
+        parseProcFunc();
+        while(currentToken.kind == Token.AND){
+            parseProcFunc();
+        }
+    }
+
+
+
+    /*------------------------------------------------------------*/
+
     Declaration parseSingleDeclaration() throws SyntaxError {
         Declaration declarationAST = null; // in case there's a syntactic error
 
@@ -723,7 +811,8 @@ public class Parser {
                 FormalParameterSequence fpsAST = parseFormalParameterSequence();
                 accept(Token.RPAREN);
                 accept(Token.IS);
-                Command cAST = parseSingleCommand();
+                Command cAST = parseCommand();
+                accept(Token.END);
                 finish(declarationPos);
                 declarationAST = new ProcDeclaration(iAST, fpsAST, cAST, declarationPos);
             }
