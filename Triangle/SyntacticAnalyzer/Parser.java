@@ -15,11 +15,8 @@
 package Triangle.SyntacticAnalyzer;
 
 import Triangle.AbstractSyntaxTrees.*;
+import Triangle.AbstractSyntaxTrees.DoUntilCommand;
 import Triangle.ErrorReporter;
-
-import java.awt.event.ComponentAdapter;
-
-import java.util.ArrayList;
 
 public class Parser {
 
@@ -262,7 +259,7 @@ public class Parser {
                         eAST = parseExpression();
                         accept(Token.END);
                         finish(commandPos);
-                        commandAST = new DoUntilCommand(eAST,cAST,commandPos); // TODO HACER ARBOL DE SINTAXIS ABSTRACTA
+                        commandAST = new DoUntilCommand(cAST,eAST,commandPos); // TODO REVISAR ARBOL DE SINTAXIS ABSTRACTA
                     }
 
                     else
@@ -281,11 +278,11 @@ public class Parser {
                     Command cAST = parseCommand();
                     accept(Token.END);
                     finish(commandPos);
-                    commandAST = new loopForCommand(iAST,eAST,eAST2,cAST); //TODO HACER ARBOL DE SINTAXIS ABSTRACTA
+                    commandAST = new ForCommand(iAST,eAST,eAST2,cAST, commandPos); //TODO REVISAR ARBOL DE SINTAXIS ABSTRACTA
 
                 }
                 else{
-                    syntacticError("\"%\" Error despues de loop",
+                    syntacticError("\"%\" SyntaxError expected {while, until, do, for} got ",
                             currentToken.spelling);
                     break;
                 }
@@ -308,75 +305,18 @@ public class Parser {
                 Expression e1AST = parseExpression();
                 accept(Token.THEN);
                 Command c1AST = parseCommand();
-                //commandAST = new IfCommand(e1AST, c1AST, null, commandPos);
                 Command c2AST = null;
-                ElsifCommand elifCommandAux = null;
-                while(currentToken.kind == Token.ELSIF){
-                    acceptIt();
-                    Expression e2AST = parseExpression();
-                    accept(Token.THEN);
-                    Command cAUX = parseCommand();
-                    finish(commandPos);
-                    if(elifCommandAux == null)
-                        elifCommandAux = new ElsifCommand(e2AST, cAUX, null, commandPos);
-                    else{
-                        ElsifCommand aux = new ElsifCommand(e2AST, c2AST, null, commandPos);
-                        elifCommandAux.C2 = aux;
-                        elifCommandAux = aux;
-                    }
-                }
-                accept(Token.ELSE);
-                if(elifCommandAux != null) {//Revisa si no hay elsif
-                    elifCommandAux.C2 = parseCommand(); //Command del end
-                    c2AST = elifCommandAux;
-                }
-                else
+                if(currentToken.kind == Token.ELSIF)
+                    c2AST = parseElsif();
+                else{
+                    accept(Token.ELSE);
                     c2AST = parseCommand();
+                }
                 accept(Token.END);
                 finish(commandPos);
                 commandAST = new IfCommand(e1AST, c1AST, c2AST, commandPos);
             }
             break;
-            /* Eliminado por proyecto 1
-            case Token.BEGIN:
-                acceptIt();
-                commandAST = parseCommand();
-                accept(Token.END);
-                break;
-
-            case Token.LET: {
-                acceptIt();
-                Declaration dAST = parseDeclaration();
-                accept(Token.IN);
-                Command cAST = parseSingleCommand();
-                finish(commandPos);
-                commandAST = new LetCommand(dAST, cAST, commandPos);
-            }
-            break;
-
-
-            case Token.IF: {
-                acceptIt();
-                Expression eAST = parseExpression();
-                accept(Token.THEN);
-                Command c1AST = parseSingleCommand();
-                accept(Token.ELSE);
-                Command c2AST = parseSingleCommand();
-                finish(commandPos);
-                commandAST = new IfCommand(eAST, c1AST, c2AST, commandPos);
-            }
-            break;
-
-            case Token.WHILE: {
-                acceptIt();
-                Expression eAST = parseExpression();
-                accept(Token.DO);
-                Command cAST = parseSingleCommand();
-                finish(commandPos);
-                commandAST = new WhileCommand(eAST, cAST, commandPos);
-            }
-            break;
-            */
 
             case Token.SEMICOLON:
             case Token.END:
@@ -398,6 +338,31 @@ public class Parser {
 
         return commandAST;
     }
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Auxiliar para parsear el elsif recursivamente
+//
+///////////////////////////////////////////////////////////////////////////////
+
+    Command parseElsif() throws SyntaxError{
+        SourcePosition commandPos = new SourcePosition();
+        start(commandPos);
+        Command cAST = null;
+        accept(Token.ELSIF);
+        Expression eAST = parseExpression();
+        accept(Token.THEN);
+        Command cAUX = parseCommand();
+        finish(commandPos);
+        if(currentToken.kind == Token.ELSIF)
+            cAST = new ElsifCommand(eAST, cAUX, parseElsif(), commandPos);
+        else{
+            Command elseCommand = parseCommand();
+            cAST = new ElsifCommand(eAST, cAUX, elseCommand, commandPos);
+        }
+        return cAST;
+    }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -652,7 +617,6 @@ public class Parser {
             case Token.FUNC:
             case Token.TYPE:
                 declarationAST = parseSingleDeclaration();
-                //TODO ver si va un finish
                 break;
             case Token.REC: {
                 acceptIt();
