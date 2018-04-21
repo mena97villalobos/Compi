@@ -586,16 +586,14 @@ public class Parser {
 // DECLARATIONS
 //
 ///////////////////////////////////////////////////////////////////////////////
-
     Declaration parseDeclaration() throws SyntaxError {
         Declaration declarationAST = null; // in case there's a syntactic error
-
         SourcePosition declarationPos = new SourcePosition();
         start(declarationPos);
-        declarationAST = parseSingleDeclaration();
+        declarationAST = parseCompoundDeclaration(); //TODO DECLARATION ESPECIFICACION DE MODIFICAR
         while (currentToken.kind == Token.SEMICOLON) {
             acceptIt();
-            Declaration d2AST = parseSingleDeclaration();
+            Declaration d2AST = parseCompoundDeclaration();
             finish(declarationPos);
             declarationAST = new SequentialDeclaration(declarationAST, d2AST,
                     declarationPos);

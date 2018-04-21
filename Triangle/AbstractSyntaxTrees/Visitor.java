@@ -30,6 +30,8 @@ public interface Visitor {
   public abstract Object visitUntilCommand(UntilCommand ast, Object o);
   public abstract Object visitElsifCommand(ElsifCommand ast, Object o);
   public abstract Object visitForCommand(ForCommand ast, Object o);
+  public abstract Object visitVarInitialized(VarInitialized ast, Object o);
+  public abstract Object visitArrayStatic(ArrayTypeDenoterStatic ast,Object o);
 
   // Expressions
   public abstract Object visitArrayExpression(ArrayExpression ast, Object o);
