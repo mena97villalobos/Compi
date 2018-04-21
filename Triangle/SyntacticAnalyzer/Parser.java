@@ -18,6 +18,8 @@ import Triangle.AbstractSyntaxTrees.*;
 import Triangle.AbstractSyntaxTrees.DoUntilCommand;
 import Triangle.ErrorReporter;
 
+import java.util.concurrent.Delayed;
+
 public class Parser {
 
     private Scanner lexicalAnalyser;
@@ -633,33 +635,47 @@ public class Parser {
         return declarationAST;
     }
 
-    void parseProcFunc() throws SyntaxError{ //TODO crear AST para proc funcs
+    Declaration parseProcFunc() throws SyntaxError{ //TODO crear AST para proc funcs
         //TODO falta juntar todo en un AST y devolverlo
         SourcePosition procFuncsPos = new SourcePosition();
+        Declaration declarationAST = null;
         start(procFuncsPos);
         switch (currentToken.kind){
             case Token.PROC: {
                 acceptIt();
                 accept(Token.IDENTIFIER);
+                Identifier identifier = parseIdentifier();
                 accept(Token.LPAREN);
-                FormalParameter formalParameter = parseFormalParameter();
+                FormalParameterSequence formalParameter = parseFormalParameterSequence();
                 accept(Token.RPAREN);
                 accept(Token.IS);
                 Command command = parseCommand();
                 accept(Token.END);
+                finish(procFuncsPos);
+                declarationAST = new ProcDeclaration(identifier, formalParameter, command, procFuncsPos);
+                break;
             }
             case Token.FUNC: {
                 acceptIt();
                 accept(Token.IDENTIFIER);
+                Identifier identifier = parseIdentifier();
                 accept(Token.LPAREN);
-                FormalParameter formalParameter = parseFormalParameter();
+                FormalParameterSequence formalParameterSequence = parseFormalParameterSequence();
                 accept(Token.RPAREN);
                 accept(Token.COLON);
                 TypeDenoter typeDenoter = parseTypeDenoter();
                 accept(Token.IS);
                 Expression expression = parseExpression();
+                finish(procFuncsPos);
+                declarationAST = new FuncDeclaration(identifier, formalParameterSequence, typeDenoter, expression, procFuncsPos);
+                break;
             }
+            default:
+                syntacticError("\"%\" expected proc or func got ",
+                        currentToken.spelling);
+                break;
         }
+        return declarationAST;
     }
 
     void parseProcFuncs() throws SyntaxError{
@@ -710,8 +726,6 @@ public class Parser {
                 else
                     syntacticError("\"%\" Error al inicializar o declarar una variable",
                             currentToken.spelling);
-
-
             }
             break;
 
