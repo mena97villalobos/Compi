@@ -689,16 +689,10 @@ public class Parser {
 
     void parseProcFuncs() throws SyntaxError{
         parseProcFunc();
-        if(currentToken.kind == Token.AND){ //TODO REVISAR Hacer obligatorio el primer AND
-            while(currentToken.kind == Token.AND){
-                acceptIt();
-                parseProcFunc();
-            }
-        }
-        else{
-            syntacticError("\"%\" expected \'and\' got ",
-                    currentToken.spelling);
-        }
+        do{
+            accept(Token.AND);
+            parseProcFunc();
+        }while(currentToken.kind == Token.AND);
 
     }
 
