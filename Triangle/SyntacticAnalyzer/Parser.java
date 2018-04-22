@@ -361,11 +361,14 @@ public class Parser {
         Expression eAST = parseExpression();
         accept(Token.THEN);
         Command cAUX = parseCommand();
-        finish(commandPos);
-        if(currentToken.kind == Token.ELSIF)
+        if(currentToken.kind == Token.ELSIF) {
+            finish(commandPos);
             cAST = new ElsifCommand(eAST, cAUX, parseElsif(), commandPos);
+        }
         else{
+            accept(Token.ELSE);
             Command elseCommand = parseCommand();
+            finish(commandPos);
             cAST = new ElsifCommand(eAST, cAUX, elseCommand, commandPos);
         }
         return cAST;
@@ -1024,35 +1027,6 @@ public class Parser {
                     finish(typePos);
                     typeAST = new ArrayTypeDenoterStatic(il1AST, il2AST, tAST, typePos); //TODO agregar AST para Array con ..
                 }
-                /*accept(Token.OF);
-                TypeDenoter tAST = parseTypeDenoter();
-                finish(typePos);
-                typeAST = new ArrayTypeDenoter(ilAST, tAST, typePos);
-                */
-                /*
-                else if(currentToken.kind == Token.DO){
-                    acceptIt();
-                    Command cAST = parseCommand();
-                    Expression eAST = null;
-                    if(currentToken.kind == Token.WHILE){
-                        acceptIt();
-                        eAST = parseExpression();
-                        accept(Token.END);
-                        finish(commandPos);
-                        commandAST = new loopWhileCommand(cAST,eAST,commandPos); //TODO HACER ARBOL DE SINTAXIS ABSTRACTA
-                    }
-                    else if(currentToken.kind ==Token.UNTIL){
-                        acceptIt();
-                        eAST = parseExpression();
-                        accept(Token.END);
-                        finish(commandPos);
-                        commandAST = new loopUntilCommand(cAST,eAST,commandPos); // TODO HACER ARBOL DE SINTAXIS ABSTRACTA
-                    }
-
-                    else
-                        syntacticError("\"%\" Error, se esperaba UNTIL O WHILE",
-                                currentToken.spelling);
-                 */
             }
             break;
 
