@@ -32,6 +32,8 @@ public interface Visitor {
   public abstract Object visitForCommand(ForCommand ast, Object o);
   public abstract Object visitVarInitialized(VarInitialized ast, Object o);
   public abstract Object visitArrayStatic(ArrayTypeDenoterStatic ast,Object o);
+  public abstract Object visitProcFuncs(ProcFuncs ast, Object o);
+  public abstract Object visitPrivateDeclaration(PrivateDeclaration ast, Object o);
 
   // Expressions
   public abstract Object visitArrayExpression(ArrayExpression ast, Object o);

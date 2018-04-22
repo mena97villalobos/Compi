@@ -629,7 +629,7 @@ public class Parser {
                 break;
             case Token.REC: {
                 acceptIt();
-                //TODO parse ProcFuncs
+                declarationAST = parseProcFuncs();
                 accept(Token.END);
             }
             case Token.PRIVATE: {
@@ -638,14 +638,14 @@ public class Parser {
                 accept(Token.IN);
                 Declaration d3AST = parseDeclaration();
                 accept(Token.END);
-                //TODO ver si va un finish
+                finish(compoundPos);
+                declarationAST = new PrivateDeclaration(d2AST, d3AST, compoundPos);
             }
         }
         return declarationAST;
     }
 
-    Declaration parseProcFunc() throws SyntaxError{ //TODO crear AST para proc funcs
-        //TODO falta juntar todo en un AST y devolverlo
+    Declaration parseProcFunc() throws SyntaxError{
         SourcePosition procFuncsPos = new SourcePosition();
         Declaration declarationAST = null;
         start(procFuncsPos);
@@ -687,13 +687,17 @@ public class Parser {
         return declarationAST;
     }
 
-    void parseProcFuncs() throws SyntaxError{
-        parseProcFunc();
+    Declaration parseProcFuncs() throws SyntaxError{
+        SourcePosition position = new SourcePosition();
+        start(position);
+        Declaration procFuncsAST = parseProcFunc();
         do{
             accept(Token.AND);
-            parseProcFunc();
+            Declaration Daux = parseProcFunc();
+            finish(position);
+            procFuncsAST = new ProcFuncs(procFuncsAST, Daux, position);
         }while(currentToken.kind == Token.AND);
-
+        return procFuncsAST;
     }
 
 

@@ -129,6 +129,16 @@ public class LayoutVisitor implements Visitor {
     return layoutTernary("ArrayStaticDeclaration",ast.IL,ast.IL2,ast.T);
   }
 
+  @Override
+  public Object visitProcFuncs(ProcFuncs ast, Object o) {
+    return layoutBinary("ProcFuncsDeclaration", ast.D1, ast.D2);
+  }
+
+  @Override
+  public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
+    return layoutBinary("PrivateDeclaration", ast.D1, ast.D2);
+  }
+
   public Object visitVnameExpression(VnameExpression ast, Object obj) {
     return layoutUnary("VnameExpr.", ast.V);
   }
