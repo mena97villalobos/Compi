@@ -284,7 +284,7 @@ public class Parser {
 
                 }
                 else{
-                    syntacticError("\"%\" SyntaxError expected {while, until, do, for} got ",
+                    syntacticError("\"%\" SyntaxError expected {while, until, do, for}",
                             currentToken.spelling);
                     break;
                 }
@@ -321,13 +321,18 @@ public class Parser {
             }
             break;
 
+            case Token.NOTHING: {
+                acceptIt();
+                finish(commandPos);
+                commandAST = new EmptyCommand(commandPos); //TODO Agregar NOTHING
+                break;
+            }
+
             case Token.SEMICOLON:
             case Token.END:
             case Token.ELSE:
             case Token.IN:
             case Token.EOT:
-            case Token.NOTHING:
-
                 finish(commandPos);
                 commandAST = new EmptyCommand(commandPos); //TODO Agregar NOTHING
                 break;
@@ -1012,6 +1017,7 @@ public class Parser {
                     finish(typePos);
                     typeAST = new ArrayTypeDenoter(il1AST, tAST, typePos); //TODO cambiar AST
                 } else if(currentToken.kind == Token.DOUBLE_DOTS){
+                    accept(Token.DOUBLE_DOTS);
                     IntegerLiteral il2AST = parseIntegerLiteral();
                     accept(Token.OF);
                     TypeDenoter tAST = parseTypeDenoter();
