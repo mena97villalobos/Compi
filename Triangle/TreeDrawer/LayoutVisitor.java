@@ -56,7 +56,7 @@ public class LayoutVisitor implements Visitor {
   }
 
   public Object visitWhileCommand(WhileCommand ast, Object obj) {
-    return layoutBinary("WhileCom.", ast.E, ast.C);
+    return layoutBinary("WhileLoopCom.", ast.E, ast.C);
   }
 
 
