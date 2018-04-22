@@ -114,6 +114,18 @@ public final class Checker implements Visitor {
   }
 
   @Override
+  public Object visitVarInitialized(VarInitialized ast, Object o) {
+    //TODO
+    return null;
+  }
+
+  @Override
+  public Object visitArrayStatic(ArrayTypeDenoterStatic ast, Object o) {
+    //TODO
+    return null;
+  }
+
+  @Override
   public Object visitUntilCommand(UntilCommand ast, Object o) {
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
     if (! eType.equals(StdEnvironment.booleanType))

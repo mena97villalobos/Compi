@@ -671,7 +671,7 @@ public class Parser {
                 break;
             }
             default:
-                syntacticError("\"%\" expected proc or func got ",
+                syntacticError("\"%\" expected \'proc\' or \'func\' got ",
                         currentToken.spelling);
                 break;
         }
@@ -679,11 +679,18 @@ public class Parser {
     }
 
     void parseProcFuncs() throws SyntaxError{
-        //TODO faltan los AST
         parseProcFunc();
-        while(currentToken.kind == Token.AND){
-            parseProcFunc();
+        if(currentToken.kind == Token.AND){ //TODO REVISAR Hacer obligatorio el primer AND
+            while(currentToken.kind == Token.AND){
+                acceptIt();
+                parseProcFunc();
+            }
         }
+        else{
+            syntacticError("\"%\" expected \'and\' got ",
+                    currentToken.spelling);
+        }
+
     }
 
 
