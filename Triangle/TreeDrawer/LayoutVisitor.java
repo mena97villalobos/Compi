@@ -125,6 +125,10 @@ public class LayoutVisitor implements Visitor {
     return  layoutBinary("VarInitializedCommand",ast.I,ast.E);
   }
 
+  public Object visitRecDeclaration(RecDeclaration ast,Object obj){
+    return layoutUnary("RecDeclaration",ast.D);
+  }
+
   public Object visitArrayStatic(ArrayTypeDenoterStatic ast, Object obj){
     return layoutTernary("ArrayStaticDeclaration",ast.IL,ast.IL2,ast.T);
   }

@@ -616,6 +616,7 @@ public class Parser {
     /* Agregado PROYECTO 1 PARSE COMPOUND DECLARATION*/
     Declaration parseCompoundDeclaration() throws SyntaxError {
         Declaration declarationAST = null;
+        Declaration declarationAux = null;
         SourcePosition compoundPos = new SourcePosition();
         start(compoundPos);
         switch (currentToken.kind){
@@ -629,8 +630,10 @@ public class Parser {
                 break;
             case Token.REC: {
                 acceptIt();
-                declarationAST = parseProcFuncs();
+                declarationAux = parseProcFunc();
                 accept(Token.END);
+                finish(compoundPos);
+                declarationAST = new RecDeclaration(declarationAux,compoundPos);
             }
             case Token.PRIVATE: {
                 acceptIt();

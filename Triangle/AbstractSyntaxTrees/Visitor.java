@@ -34,7 +34,7 @@ public interface Visitor {
   public abstract Object visitArrayStatic(ArrayTypeDenoterStatic ast,Object o);
   public abstract Object visitProcFuncs(ProcFuncs ast, Object o);
   public abstract Object visitPrivateDeclaration(PrivateDeclaration ast, Object o);
-
+    public abstract Object visitRecDeclaration(RecDeclaration ast,Object o);
   // Expressions
   public abstract Object visitArrayExpression(ArrayExpression ast, Object o);
   public abstract Object visitBinaryExpression(BinaryExpression ast, Object o);
