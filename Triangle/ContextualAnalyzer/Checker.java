@@ -126,6 +126,21 @@ public final class Checker implements Visitor {
   }
 
   @Override
+  public Object visitProcFuncs(ProcFuncs ast, Object o) {
+    return null;
+  }
+
+  @Override
+  public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
+    return null;
+  }
+
+  @Override
+  public Object visitRecDeclaration(RecDeclaration ast, Object o) {
+    return null;
+  }
+
+  @Override
   public Object visitUntilCommand(UntilCommand ast, Object o) {
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
     if (! eType.equals(StdEnvironment.booleanType))

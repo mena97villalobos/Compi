@@ -129,6 +129,21 @@ public final class Encoder implements Visitor {
     return null;
   }
 
+  @Override
+  public Object visitProcFuncs(ProcFuncs ast, Object o) {
+    return null;
+  }
+
+  @Override
+  public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
+    return null;
+  }
+
+  @Override
+  public Object visitRecDeclaration(RecDeclaration ast, Object o) {
+    return null;
+  }
+
 
   // Expressions
   public Object visitArrayExpression(ArrayExpression ast, Object o) {

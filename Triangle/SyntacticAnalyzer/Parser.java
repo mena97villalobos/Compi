@@ -238,6 +238,7 @@ public class Parser {
                     commandAST = new WhileCommand(eAST, cAST, commandPos); //TODO Tecnicamente el AST de while que existe sirve REVISAR que sirva
                 }
                 else if(currentToken.kind == Token.UNTIL){
+                    acceptIt();
                     Expression eAST = parseExpression();
                     accept(Token.DO);
                     Command cAST = parseCommand();
@@ -630,10 +631,11 @@ public class Parser {
                 break;
             case Token.REC: {
                 acceptIt();
-                declarationAux = parseProcFunc();
+                declarationAux = parseProcFuncs();
                 accept(Token.END);
                 finish(compoundPos);
                 declarationAST = new RecDeclaration(declarationAux,compoundPos);
+                break;
             }
             case Token.PRIVATE: {
                 acceptIt();
@@ -643,6 +645,7 @@ public class Parser {
                 accept(Token.END);
                 finish(compoundPos);
                 declarationAST = new PrivateDeclaration(d2AST, d3AST, compoundPos);
+                break;
             }
         }
         return declarationAST;
@@ -655,7 +658,6 @@ public class Parser {
         switch (currentToken.kind){
             case Token.PROC: {
                 acceptIt();
-                accept(Token.IDENTIFIER);
                 Identifier identifier = parseIdentifier();
                 accept(Token.LPAREN);
                 FormalParameterSequence formalParameter = parseFormalParameterSequence();
@@ -669,7 +671,6 @@ public class Parser {
             }
             case Token.FUNC: {
                 acceptIt();
-                accept(Token.IDENTIFIER);
                 Identifier identifier = parseIdentifier();
                 accept(Token.LPAREN);
                 FormalParameterSequence formalParameterSequence = parseFormalParameterSequence();
