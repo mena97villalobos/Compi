@@ -15,10 +15,11 @@ public class ArrayTypeDenoterStatic extends TypeDenoter {
     }
 
     public Object visit(Visitor v, Object o) {
-        return v.visitArrayStatic(this, o); //TODO No esta implementado en el Checker
+        return v.visitArrayStatic(this, o);
     }
 
-    public boolean equals(Object o){ //TODO HAY QUE VER COMO SE IMPLEMENTA PORQUE ESTA DESPICHE
+    public boolean equals(Object o){
+        //TODO HAY QUE VER COMO SE IMPLEMENTA PORQUE ESTA DESPICHE
         return true;
     }
 

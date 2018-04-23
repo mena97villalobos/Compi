@@ -10,6 +10,12 @@
  * This software is provided free for educational use only. It may
  * not be used for commercial purposes without the prior written permission
  * of the authors.
+ *
+ * Modificaciones Proyecto 1 20018/04/23
+ * Realizadas por
+ * Javier Contreras Muñoz
+ * Bryan Mena Villalobos
+ * David Valverde Garro
  */
 
 package Triangle.SyntacticAnalyzer;
@@ -203,6 +209,23 @@ public class Parser {
         return commandAST;
     }
 
+    //Esta función se modifica por el PROYECTO 1
+    /*
+    * Lista modificaciones:
+    * Se eliminan:
+    *   begin Command end
+    *   let Declaration in single-Command
+    *   if Expression then single-Command else single-Command
+    *   while Expression do single-Command
+    * Se añaden:
+    *   nothing
+    *   loop while Expression do Command end
+    *   loop until Expression do Command end
+    *   loop do Command while Expression end
+    *   loop for Identifier := Expression to Expression do Command end
+    *   let Declaration in Command end
+    *   if Expression then Command (elsif Expression then Command)* else Command end
+    */
     Command parseSingleCommand() throws SyntaxError {
         Command commandAST = null; // in case there's a syntactic error
         SourcePosition commandPos = new SourcePosition();
@@ -210,7 +233,7 @@ public class Parser {
         switch (currentToken.kind) {
             case Token.IDENTIFIER: {
                 Identifier iAST = parseIdentifier();
-                if (currentToken.kind == Token.LPAREN) { // Lista parametros funciones
+                if (currentToken.kind == Token.LPAREN) { //Parsea llamada a un identificador
                     acceptIt();
                     ActualParameterSequence apsAST = parseActualParameterSequence();
                     accept(Token.RPAREN);
@@ -235,7 +258,7 @@ public class Parser {
                     Command cAST = parseCommand();
                     accept(Token.END);
                     finish(commandPos);
-                    commandAST = new WhileCommand(eAST, cAST, commandPos); //TODO Tecnicamente el AST de while que existe sirve REVISAR que sirva
+                    commandAST = new WhileCommand(eAST, cAST, commandPos);
                 }
                 else if(currentToken.kind == Token.UNTIL){
                     acceptIt();
@@ -244,7 +267,7 @@ public class Parser {
                     Command cAST = parseCommand();
                     accept(Token.END);
                     finish(commandPos);
-                    commandAST = new UntilCommand(eAST,cAST,commandPos); // TODO REVISAR ARBOL DE SINTAXIS ABSTRACTA
+                    commandAST = new UntilCommand(eAST,cAST,commandPos);
                 }
                 else if(currentToken.kind == Token.DO){
                     acceptIt();
@@ -255,18 +278,17 @@ public class Parser {
                         eAST = parseExpression();
                         accept(Token.END);
                         finish(commandPos);
-                        commandAST = new DoWhileCommand(cAST,eAST,commandPos); //TODO REVISAR ARBOL DE SINTAXIS ABSTRACTA
+                        commandAST = new DoWhileCommand(cAST,eAST,commandPos);
                     }
                     else if(currentToken.kind ==Token.UNTIL){
                         acceptIt();
                         eAST = parseExpression();
                         accept(Token.END);
                         finish(commandPos);
-                        commandAST = new DoUntilCommand(cAST,eAST,commandPos); // TODO REVISAR ARBOL DE SINTAXIS ABSTRACTA
+                        commandAST = new DoUntilCommand(cAST,eAST,commandPos);
                     }
-
                     else
-                        syntacticError("\"%\" Error, UNTIL OR WHILE expected got: ",
+                        syntacticError("\"%\" Error, UNTIL OR WHILE expected",
                                 currentToken.spelling);
                         break;
                 }
@@ -281,8 +303,7 @@ public class Parser {
                     Command cAST = parseCommand();
                     accept(Token.END);
                     finish(commandPos);
-                    commandAST = new ForCommand(iAST,eAST,eAST2,cAST, commandPos); //TODO REVISAR ARBOL DE SINTAXIS ABSTRACTA
-
+                    commandAST = new ForCommand(iAST,eAST,eAST2,cAST, commandPos);
                 }
                 else{
                     syntacticError("\"%\" SyntaxError expected {while, until, do, for}",
@@ -302,16 +323,14 @@ public class Parser {
             }
             break;
 
-
             case Token.IF: {
-                //TODO revisar la recurson que hace el elsif para ver que el arbol quede bien la solucion esta bien cochina :V
                 acceptIt();
                 Expression e1AST = parseExpression();
                 accept(Token.THEN);
                 Command c1AST = parseCommand();
                 Command c2AST = null;
                 if(currentToken.kind == Token.ELSIF)
-                    c2AST = parseElsif();
+                    c2AST = parseElsif(); //Lamada a funcion auxiliar para parsear los elsif opcionales
                 else{
                     accept(Token.ELSE);
                     c2AST = parseCommand();
@@ -325,7 +344,7 @@ public class Parser {
             case Token.NOTHING: {
                 acceptIt();
                 finish(commandPos);
-                commandAST = new EmptyCommand(commandPos); //TODO Agregar NOTHING
+                commandAST = new EmptyCommand(commandPos);
                 break;
             }
 
@@ -335,7 +354,7 @@ public class Parser {
             case Token.IN:
             case Token.EOT:
                 finish(commandPos);
-                commandAST = new EmptyCommand(commandPos); //TODO Agregar NOTHING
+                commandAST = new EmptyCommand(commandPos);
                 break;
 
             default:
@@ -364,9 +383,10 @@ public class Parser {
         Command cAUX = parseCommand();
         if(currentToken.kind == Token.ELSIF) {
             finish(commandPos);
+            //Recursion de cola para guardar los elsif como jerarquia
             cAST = new ElsifCommand(eAST, cAUX, parseElsif(), commandPos);
         }
-        else{
+        else{ //Caso que no exista otro elsif se parsea el comando del else, se deja como hoja en la jerarquia del elsif
             accept(Token.ELSE);
             Command elseCommand = parseCommand();
             finish(commandPos);
@@ -602,7 +622,7 @@ public class Parser {
         Declaration declarationAST = null; // in case there's a syntactic error
         SourcePosition declarationPos = new SourcePosition();
         start(declarationPos);
-        declarationAST = parseCompoundDeclaration(); //TODO DECLARATION ESPECIFICACION DE MODIFICAR
+        declarationAST = parseCompoundDeclaration();
         while (currentToken.kind == Token.SEMICOLON) {
             acceptIt();
             Declaration d2AST = parseCompoundDeclaration();
@@ -613,15 +633,14 @@ public class Parser {
         return declarationAST;
     }
 
-
-    /* Agregado PROYECTO 1 PARSE COMPOUND DECLARATION*/
+    //<editor-fold desc="Agregado Proyecto 1">
     Declaration parseCompoundDeclaration() throws SyntaxError {
         Declaration declarationAST = null;
         Declaration declarationAux = null;
         SourcePosition compoundPos = new SourcePosition();
         start(compoundPos);
         switch (currentToken.kind){
-            //Caso de un compound Declaration
+            //Los siguientes casos son los iniciadores de un SingleDeclaration
             case Token.CONST:
             case Token.VAR:
             case Token.PROC:
@@ -695,7 +714,7 @@ public class Parser {
         SourcePosition position = new SourcePosition();
         start(position);
         Declaration procFuncsAST = parseProcFunc();
-        do{
+        do{ //Se hace un do while para que el primer and y el segundo ProcFunc sean obligatorios
             accept(Token.AND);
             Declaration Daux = parseProcFunc();
             finish(position);
@@ -703,8 +722,7 @@ public class Parser {
         }while(currentToken.kind == Token.AND);
         return procFuncsAST;
     }
-
-
+    //</editor-fold>
 
     /*------------------------------------------------------------*/
 
@@ -729,17 +747,17 @@ public class Parser {
             case Token.VAR: {
                 acceptIt();
                 Identifier iAST = parseIdentifier();
-
                 if(currentToken.kind ==Token.COLON){
                     accept(Token.COLON);
                     TypeDenoter tAST = parseTypeDenoter();
                     finish(declarationPos);
                     declarationAST = new VarDeclaration(iAST, tAST, declarationPos);
+                //Añadido por el PROYECTO 1 hace el parse de una variable inicializada
                 }else if(currentToken.kind == Token.BECOMES ){
                     acceptIt();
                     Expression eAST = parseExpression();
                     finish(declarationPos);
-                    declarationAST = new VarInitialized(iAST,eAST,declarationPos);// TODO IMPLEMENTAR ARBOL SINTAXIS, ESTE ES EL DE VARIABLE INICIALIZADA
+                    declarationAST = new VarInitialized(iAST,eAST,declarationPos);
                 }
                 else
                     syntacticError("\"%\" Error al inicializar o declarar una variable",
@@ -754,7 +772,7 @@ public class Parser {
                 FormalParameterSequence fpsAST = parseFormalParameterSequence();
                 accept(Token.RPAREN);
                 accept(Token.IS);
-                Command cAST = parseCommand();
+                Command cAST = parseCommand(); //Cambio por PROYECTO 1 pase de parseSingleCommand() a parseCommand()
                 accept(Token.END);
                 finish(declarationPos);
                 declarationAST = new ProcDeclaration(iAST, fpsAST, cAST, declarationPos);
@@ -1020,14 +1038,15 @@ public class Parser {
                     acceptIt();
                     TypeDenoter tAST = parseTypeDenoter();
                     finish(typePos);
-                    typeAST = new ArrayTypeDenoter(il1AST, tAST, typePos); //TODO cambiar AST
+                    typeAST = new ArrayTypeDenoter(il1AST, tAST, typePos);
+                //Agregado PROYECTO 1
                 } else if(currentToken.kind == Token.DOUBLE_DOTS){
                     accept(Token.DOUBLE_DOTS);
                     IntegerLiteral il2AST = parseIntegerLiteral();
                     accept(Token.OF);
                     TypeDenoter tAST = parseTypeDenoter();
                     finish(typePos);
-                    typeAST = new ArrayTypeDenoterStatic(il1AST, il2AST, tAST, typePos); //TODO agregar AST para Array con ..
+                    typeAST = new ArrayTypeDenoterStatic(il1AST, il2AST, tAST, typePos);
                 }
             }
             break;

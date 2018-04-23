@@ -13,7 +13,7 @@ public class ElsifCommand extends Command {
     }
 
     public Object visit(Visitor v, Object o) {
-        return v.visitElsifCommand(this, o); //TODO visitor del Elif Command
+        return v.visitElsifCommand(this, o);
     }
 
     public Expression E;

@@ -10,21 +10,19 @@
  * This software is provided free for educational use only. It may
  * not be used for commercial purposes without the prior written permission
  * of the authors.
+ *
+ * Modificaciones Proyecto 1 20018/04/23
+ * Realizadas por
+ * Javier Contreras Muñoz
+ * Bryan Mena Villalobos
+ * David Valverde Garro
  */
 
 package Triangle.AbstractSyntaxTrees;
 
 public interface Visitor {
 
-  // Commands
-  public abstract Object visitAssignCommand(AssignCommand ast, Object o);
-  public abstract Object visitCallCommand(CallCommand ast, Object o);
-  public abstract Object visitEmptyCommand(EmptyCommand ast, Object o);
-  public abstract Object visitIfCommand(IfCommand ast, Object o);
-  public abstract Object visitLetCommand(LetCommand ast, Object o);
-  public abstract Object visitSequentialCommand(SequentialCommand ast, Object o);
-  public abstract Object visitWhileCommand(WhileCommand ast, Object o);
-  //TODO Agregado proyecto 1 REVISAR
+  //<editor-fold desc="Agregado por PROYECTO 1">
   public abstract Object visitDoWhileCommand(DoWhileCommand ast, Object o);
   public abstract Object visitDoUntilCommand(DoUntilCommand ast, Object o);
   public abstract Object visitUntilCommand(UntilCommand ast, Object o);
@@ -34,7 +32,18 @@ public interface Visitor {
   public abstract Object visitArrayStatic(ArrayTypeDenoterStatic ast,Object o);
   public abstract Object visitProcFuncs(ProcFuncs ast, Object o);
   public abstract Object visitPrivateDeclaration(PrivateDeclaration ast, Object o);
-    public abstract Object visitRecDeclaration(RecDeclaration ast,Object o);
+  public abstract Object visitRecDeclaration(RecDeclaration ast,Object o);
+  //</editor-fold>
+
+  // Commands
+  public abstract Object visitAssignCommand(AssignCommand ast, Object o);
+  public abstract Object visitCallCommand(CallCommand ast, Object o);
+  public abstract Object visitEmptyCommand(EmptyCommand ast, Object o);
+  public abstract Object visitIfCommand(IfCommand ast, Object o);
+  public abstract Object visitLetCommand(LetCommand ast, Object o);
+  public abstract Object visitSequentialCommand(SequentialCommand ast, Object o);
+  public abstract Object visitWhileCommand(WhileCommand ast, Object o);
+
   // Expressions
   public abstract Object visitArrayExpression(ArrayExpression ast, Object o);
   public abstract Object visitBinaryExpression(BinaryExpression ast, Object o);

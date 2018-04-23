@@ -46,7 +46,6 @@ public class LayoutVisitor implements Visitor {
     return layoutTernary("IfCom.", ast.E, ast.C1, ast.C2);
   }
 
-
   public Object visitLetCommand(LetCommand ast, Object obj) {
     return layoutBinary("LetCom.", ast.D, ast.C);
   }
@@ -59,6 +58,31 @@ public class LayoutVisitor implements Visitor {
     return layoutBinary("WhileLoopCom.", ast.E, ast.C);
   }
 
+  //<editor-fold desc="Las siguientes funciones fueron añadidas para el proyecto 1">
+  /*
+  *Las siguientes funciones son producto del proyecto 1, cada función le agrega al Layout visitor
+  *lo necesario para recorrer los nuevos comandos creados para el lenguaje Triangulo Extendido
+  **/
+  public Object visitUntilCommand(UntilCommand ast, Object obj){
+    return layoutBinary("UntilCommand",ast.E,ast.C);
+  }
+
+  public Object visitDoWhileCommand(DoWhileCommand ast, Object o){
+    return layoutBinary("DoWhileCommand",ast.C,ast.E);
+  }
+
+  public Object visitDoUntilCommand(DoUntilCommand ast, Object o){
+    return layoutBinary("DoUntilCommand",ast.C,ast.E);
+  }
+
+  public Object visitForCommand(ForCommand ast, Object o){
+    return layoutQuaternary("ForCommand",ast.I,ast.E1,ast.E2,ast.C);
+  }
+
+  public Object visitElsifCommand(ElsifCommand ast, Object obj) {
+    return layoutTernary("ElsifCommand", ast.E, ast.C1, ast.C2);
+  }
+  //</editor-fold>
 
   // Expressions
   public Object visitArrayExpression(ArrayExpression ast, Object obj) {
@@ -101,46 +125,12 @@ public class LayoutVisitor implements Visitor {
     return layoutBinary("UnaryExpr.", ast.O, ast.E);
   }
 
-  public Object visitUntilCommand(UntilCommand ast, Object obj){
-    return layoutBinary("UntilCommand",ast.E,ast.C);
-  }
-
-  public Object visitDoWhileCommand(DoWhileCommand ast, Object o){
-    return layoutBinary("DoWhileCommand",ast.C,ast.E);
-  }
-
-  public Object visitDoUntilCommand(DoUntilCommand ast, Object o){
-    return layoutBinary("DoUntilCommand",ast.C,ast.E);
-  }
-
-  public Object visitForCommand(ForCommand ast, Object o){
-    return layoutQuaternary("ForCommand",ast.I,ast.E1,ast.E2,ast.C);
-  }
-
-  public Object visitElsifCommand(ElsifCommand ast, Object obj){
-    return layoutTernary("ElsifCommand",ast.E,ast.C1,ast.C2);
-  } //TODO HAY QUE VER SI ESTA VARA SIRVE
-
   public Object visitVarInitialized(VarInitialized ast, Object obj){
     return  layoutBinary("VarInitializedCommand",ast.I,ast.E);
   }
 
-  public Object visitRecDeclaration(RecDeclaration ast,Object obj){
-    return layoutUnary("RecDeclaration",ast.D);
-  }
-
   public Object visitArrayStatic(ArrayTypeDenoterStatic ast, Object obj){
     return layoutTernary("ArrayStaticDeclaration",ast.IL,ast.IL2,ast.T);
-  }
-
-  @Override
-  public Object visitProcFuncs(ProcFuncs ast, Object o) {
-    return layoutBinary("ProcFuncsDeclaration", ast.D1, ast.D2);
-  }
-
-  @Override
-  public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
-    return layoutBinary("PrivateDeclaration", ast.D1, ast.D2);
   }
 
   public Object visitVnameExpression(VnameExpression ast, Object obj) {
@@ -180,6 +170,24 @@ public class LayoutVisitor implements Visitor {
   public Object visitVarDeclaration(VarDeclaration ast, Object obj) {
     return layoutBinary("VarDecl.", ast.I, ast.T);
   }
+
+  //<editor-fold desc="Las siguientes funciones fueron añadidas para el proyecto 1">
+  /*
+   *Las siguientes funciones son producto del proyecto 1, cada función le agrega al Layout visitor
+   *lo necesario para recorrer las nuevas declaraciones creadas para el lenguaje Triangulo Extendido
+   **/
+  public Object visitProcFuncs(ProcFuncs ast, Object o) {
+    return layoutBinary("ProcFuncsDeclaration", ast.D1, ast.D2);
+  }
+
+  public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
+    return layoutBinary("PrivateDeclaration", ast.D1, ast.D2);
+  }
+
+  public Object visitRecDeclaration(RecDeclaration ast,Object obj){
+    return layoutUnary("RecDeclaration",ast.D);
+  }
+  //</editor-fold>
 
 
   // Array Aggregates
@@ -296,7 +304,6 @@ public class LayoutVisitor implements Visitor {
   public Object visitRecordTypeDenoter(RecordTypeDenoter ast, Object obj) {
     return layoutUnary("Rec.TypeD.", ast.FT);
   }
-
 
   public Object visitMultipleFieldTypeDenoter(MultipleFieldTypeDenoter ast, Object obj) {
     return layoutTernary("Mult.F.TypeD.", ast.I, ast.T, ast.FT);

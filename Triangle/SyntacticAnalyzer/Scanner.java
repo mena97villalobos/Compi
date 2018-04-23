@@ -10,6 +10,12 @@
  * This software is provided free for educational use only. It may
  * not be used for commercial purposes without the prior written permission
  * of the authors.
+ *
+ * Modificaciones Proyecto 1 20018/04/23
+ * Realizadas por
+ * Javier Contreras Muñoz
+ * Bryan Mena Villalobos
+ * David Valverde Garro
  */
 
 package Triangle.SyntacticAnalyzer;
@@ -189,6 +195,7 @@ public final class Scanner {
                     return Token.ERROR;
 
             case '.':
+                //Proyecto 1: Se modifica este case para soportar la sintaxis de Triangulo Extendido
                 takeIt();
                 if(currentChar == '.') {
                     takeIt();

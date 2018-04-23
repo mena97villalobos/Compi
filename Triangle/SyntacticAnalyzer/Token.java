@@ -10,6 +10,16 @@
  * This software is provided free for educational use only. It may
  * not be used for commercial purposes without the prior written permission
  * of the authors.
+ *
+ * Modificaciones Proyecto 1 20018/04/23
+ * Realizadas por
+ * Javier Contreras Muñoz
+ * Bryan Mena Villalobos
+ * David Valverde Garro
+ *
+ * Se añaden nuevos token para soportar la nueva sintaxis de Triangulo Extendido
+ * Se marcan con el comentario '//PROYECTO 1' los nuevos Token
+ * Se elimina el token 'begin'
  */
 
 package Triangle.SyntacticAnalyzer;
@@ -78,7 +88,7 @@ final class Token extends Object {
     ERROR = 43;
 
     private final static int
-    firstReservedWord = Token.AND, //Token.ARRAY, Cambia por proyecto 1 agregar token AND antes de ARRAY
+    firstReservedWord = Token.AND, //Token.ARRAY, Cambia por proyecto 1, se agrega token AND antes de ARRAY
     lastReservedWord  =Token.WHILE;
 
     private static String[] tokenTable = new String[]{

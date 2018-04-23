@@ -14,7 +14,7 @@ public class VarInitialized extends Declaration {
     }
 
     public Object visit(Visitor v, Object o) {
-        return v.visitVarInitialized(this, o); //TODO No esta implementado en el Checker
+        return v.visitVarInitialized(this, o);
     }
 
     public Identifier I;
