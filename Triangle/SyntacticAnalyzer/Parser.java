@@ -666,6 +666,17 @@ public class Parser {
                 declarationAST = new PrivateDeclaration(d2AST, d3AST, compoundPos);
                 break;
             }
+            default:
+                syntacticError(
+                        "\"%\" was found, expected " +
+                                "\'const\', " +
+                                "\'var\', " +
+                                "\'proc\', " +
+                                "\'func\', " +
+                                "\'type\', " +
+                                "\'rec\' or " +
+                                "\'private\'",
+                        currentToken.spelling);
         }
         return declarationAST;
     }
@@ -703,7 +714,7 @@ public class Parser {
                 break;
             }
             default:
-                syntacticError("\"%\" expected \'proc\' or \'func\' got ",
+                syntacticError("\"%\" was found, expected \'proc\' or \'func\'",
                         currentToken.spelling);
                 break;
         }
@@ -1047,6 +1058,10 @@ public class Parser {
                     TypeDenoter tAST = parseTypeDenoter();
                     finish(typePos);
                     typeAST = new ArrayTypeDenoterStatic(il1AST, il2AST, tAST, typePos);
+                }
+                else {
+                    syntacticError("\"%\" was found, expected \'of\' or \'..\'",
+                            currentToken.spelling);
                 }
             }
             break;
