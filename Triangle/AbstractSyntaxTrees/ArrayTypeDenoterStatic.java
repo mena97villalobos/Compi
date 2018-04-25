@@ -19,7 +19,7 @@ public class ArrayTypeDenoterStatic extends TypeDenoter {
     }
 
     public boolean equals(Object o){
-        //TODO HAY QUE VER COMO SE IMPLEMENTA PORQUE ESTA DESPICHE
+        //TODO Se deja impleentacion para futuros proyectos
         return true;
     }
 
