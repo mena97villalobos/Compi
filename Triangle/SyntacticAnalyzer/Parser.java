@@ -306,7 +306,7 @@ public class Parser {
                     commandAST = new ForCommand(iAST,eAST,eAST2,cAST, commandPos);
                 }
                 else{
-                    syntacticError("\"%\" SyntaxError expected {while, until, do, for}",
+                        syntacticError("\"%\" SyntaxError expected {while, until, do, for}",
                             currentToken.spelling);
                     break;
                 }
@@ -714,8 +714,8 @@ public class Parser {
                 break;
             }
             default:
-                syntacticError("\"%\" was found, expected \'proc\' or \'func\'",
-                        currentToken.spelling);
+
+
                 break;
         }
         return declarationAST;

@@ -25,6 +25,7 @@ public final class Checker implements Visitor {
   //<editor-fold desc="Funciones agregadas por el proyecto 1 implementacion se deja para futuros proyectos">
   //TODO Implementacion de las funciones agregadas por el proyecto 1 se deja para futuros proyectos
   public Object visitDoWhileCommand(DoWhileCommand ast, Object o) {
+
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
     if (! eType.equals(StdEnvironment.booleanType))
       reporter.reportError("Boolean expression expected here", "", ast.E.position);
@@ -43,9 +44,19 @@ public final class Checker implements Visitor {
   public Object visitForCommand(ForCommand ast, Object o){
     TypeDenoter e1Type = (TypeDenoter) ast.E1.visit(this, null);
     TypeDenoter e2Type = (TypeDenoter) ast.E2.visit(this, null);
-    if(!(e1Type.equals(e2Type))){
-      reporter.reportError("Expressions types does not match", "", ast.E1.position);
+
+    if(!(e1Type.equals(StdEnvironment.integerType)) && !(e2Type.equals(StdEnvironment.integerType))){
+      reporter.reportError("Expressions types must be integer", "", ast.E1.position);
     }
+    ast.C.visit(this, null);
+    return null;
+  }
+
+  @Override
+  public Object visitUntilCommand(UntilCommand ast, Object o) {
+    TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
+    if (! eType.equals(StdEnvironment.booleanType))
+      reporter.reportError("Boolean expression expected here", "", ast.E.position);
     ast.C.visit(this, null);
     return null;
   }
@@ -75,14 +86,7 @@ public final class Checker implements Visitor {
     return null;
   }
 
-  @Override
-  public Object visitUntilCommand(UntilCommand ast, Object o) {
-    TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
-    if (! eType.equals(StdEnvironment.booleanType))
-      reporter.reportError("Boolean expression expected here", "", ast.E.position);
-    ast.C.visit(this, null);
-    return null;
-  }
+
 
   @Override
   public Object visitElsifCommand(ElsifCommand ast, Object o) {
