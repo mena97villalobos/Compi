@@ -85,16 +85,14 @@ public final class Checker implements Visitor {
   }
 
   @Override
-  public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
-    return null;
-  }
-
-  @Override
   public Object visitRecDeclaration(RecDeclaration ast, Object o) {
     return null;
   }
 
-
+  @Override
+  public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
+    return null;
+  }
 
   @Override
   public Object visitElsifCommand(ElsifCommand ast, Object o) {
