@@ -64,12 +64,13 @@ public final class Checker implements Visitor {
 
   @Override
   public Object visitVarInitialized(VarInitialized ast, Object o) {
+    TypeDenoter eType = (TypeDenoter) ast.E.visit(this,null);
+    ast.I.type = eType;
     idTable.enter (ast.I.spelling, ast);
     if (ast.duplicated)
       reporter.reportError ("identifier \"%\" already declared",
               ast.I.spelling, ast.position);
-    TypeDenoter eType = (TypeDenoter) ast.E.visit(this,null);
-    ast.I.type = eType;
+
     return null;
   }
 
@@ -723,9 +724,17 @@ public final class Checker implements Visitor {
       } else if (binding instanceof VarDeclaration) {
         ast.type = ((VarDeclaration) binding).T;
         ast.variable = true;
-      } else if (binding instanceof ConstFormalParameter) {
+
+
+
+      } else if(binding instanceof VarInitialized) {
+        ast.type = ((VarInitialized) binding).I.type;
+        ast.variable = true;
+    }
+        else if (binding instanceof ConstFormalParameter) {
         ast.type = ((ConstFormalParameter) binding).T;
         ast.variable = false;
+
       } else if (binding instanceof VarFormalParameter) {
         ast.type = ((VarFormalParameter) binding).T;
         ast.variable = true;
