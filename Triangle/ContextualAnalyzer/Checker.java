@@ -49,6 +49,7 @@ public final class Checker implements Visitor {
       reporter.reportError("Expressions types must be integer", "", ast.E1.position);
     }
     ast.C.visit(this, null);
+
     return null;
   }
 
@@ -63,6 +64,12 @@ public final class Checker implements Visitor {
 
   @Override
   public Object visitVarInitialized(VarInitialized ast, Object o) {
+    idTable.enter (ast.I.spelling, ast);
+    if (ast.duplicated)
+      reporter.reportError ("identifier \"%\" already declared",
+              ast.I.spelling, ast.position);
+    TypeDenoter eType = (TypeDenoter) ast.E.visit(this,null);
+    ast.I.type = eType;
     return null;
   }
 
@@ -181,7 +188,6 @@ public final class Checker implements Visitor {
     TypeDenoter e1Type = (TypeDenoter) ast.E1.visit(this, null);
     TypeDenoter e2Type = (TypeDenoter) ast.E2.visit(this, null);
     Declaration binding = (Declaration) ast.O.visit(this, null);
-
     if (binding == null)
       reportUndeclared(ast.O);
     else {
