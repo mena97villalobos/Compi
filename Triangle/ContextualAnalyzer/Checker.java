@@ -91,7 +91,11 @@ public final class Checker implements Visitor {
 
   @Override
   public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
-    return null;
+      idTable.openScope();
+      ast.D1.visit(this, null);
+      ast.D2.visit(this, null);
+      idTable.closeScope();
+      return null;
   }
 
   @Override
