@@ -44,12 +44,13 @@ public final class Checker implements Visitor {
   public Object visitForCommand(ForCommand ast, Object o){
     TypeDenoter e1Type = (TypeDenoter) ast.E1.visit(this, null);
     TypeDenoter e2Type = (TypeDenoter) ast.E2.visit(this, null);
-
+    idTable.openScope();
     if(!(e1Type.equals(StdEnvironment.integerType)) && !(e2Type.equals(StdEnvironment.integerType))){
       reporter.reportError("Expressions types must be integer", "", ast.E1.position);
     }
+    idTable.enter(ast.I.spelling, new VarDeclaration(ast.I, e1Type, ast.position)); //TODO revisar
     ast.C.visit(this, null);
-
+    idTable.closeScope();
     return null;
   }
 
