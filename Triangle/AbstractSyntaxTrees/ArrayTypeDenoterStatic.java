@@ -18,9 +18,15 @@ public class ArrayTypeDenoterStatic extends TypeDenoter {
         return v.visitArrayStatic(this, o);
     }
 
-    public boolean equals(Object o){
-        //TODO Se deja impleentacion para futuros proyectos
-        return true;
+    public boolean equals(Object obj){ // TODO Agregado, siguiendo la vara de ArrayTypeDenoter
+        if (obj != null && obj instanceof ErrorTypeDenoter)
+            return true;
+        else if (obj != null && obj instanceof ArrayTypeDenoterStatic)
+            return this.IL.spelling.compareTo(((ArrayTypeDenoterStatic) obj).IL.spelling) == 0 &&
+                    this.IL2.spelling.compareTo(((ArrayTypeDenoterStatic) obj).IL2.spelling) == 0 &&
+                    this.T.equals(((ArrayTypeDenoterStatic) obj).T);
+        else
+            return false;
     }
 
     public IntegerLiteral IL;
