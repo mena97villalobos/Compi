@@ -49,6 +49,7 @@ public final class Checker implements Visitor {
       reporter.reportError("Expressions types must be integer", "", ast.E1.position);
     }
     idTable.openScope();
+    ast.I.visit(this, null); //Dejar la declaracion a la variable metida en el objeto TODO revisar
     idTable.enter(ast.I.spelling, new VarDeclaration(ast.I, e1Type, ast.position)); //TODO Usa la posicion del FOR COMMAND, PREGUNTAR A NACHO
     ast.C.visit(this, null);
     idTable.closeScope();
@@ -98,12 +99,10 @@ public final class Checker implements Visitor {
 
   @Override
   public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
-
       idTable.openScope();
       ast.D1.visit(this, null);
       ast.D2.visit(this, null);
       idTable.closeScope();
-
       return null;
   }
 
