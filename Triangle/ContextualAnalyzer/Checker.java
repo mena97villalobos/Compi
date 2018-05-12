@@ -117,8 +117,8 @@ public final class Checker implements Visitor {
       ProcDeclaration procDeclaration = (ProcDeclaration) procFunc;
       idTable.enter(procDeclaration.I.spelling, procDeclaration);
 
-      if (procDeclaration.duplicated)
-        reporter.reportError ("identifier \"%\" already declared",
+     if (procDeclaration.duplicated)
+        reporter.reportError ("proc identifier \"%\" already declared",
                 procDeclaration.I.spelling, procDeclaration.position);
       procDeclaration.FPS.visit(this, true);
     } else {
@@ -126,7 +126,7 @@ public final class Checker implements Visitor {
       idTable.enter(funcDeclaration.I.spelling, funcDeclaration);
 
       if (funcDeclaration.duplicated)
-        reporter.reportError ("identifier \"%\" already declared",
+        reporter.reportError ("func identifier \"%\" already declared",
                 funcDeclaration.I.spelling, funcDeclaration.position);
       funcDeclaration.FPS.visit(this, true);
     }

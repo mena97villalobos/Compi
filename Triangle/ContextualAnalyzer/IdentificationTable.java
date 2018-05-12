@@ -18,7 +18,7 @@ import Triangle.AbstractSyntaxTrees.Declaration;
 
 public final class IdentificationTable {
 
-  private int level;
+  public int level;
   private IdEntry latest;
 
   public IdentificationTable () {
