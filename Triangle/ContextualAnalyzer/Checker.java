@@ -129,6 +129,7 @@ public final class Checker implements Visitor {
         reporter.reportError ("func identifier \"%\" already declared",
                 funcDeclaration.I.spelling, funcDeclaration.position);
       funcDeclaration.FPS.visit(this, true);
+      funcDeclaration.T = (TypeDenoter) funcDeclaration.T.visit(this, null);
     }
   }
 
