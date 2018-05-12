@@ -81,12 +81,47 @@ public final class Checker implements Visitor {
 
   @Override
   public Object visitProcFuncs(ProcFuncs ast, Object o) {
+    ast.D2.visit(this, true);
+    ast.D1.visit(this, true);
+
     return null;
   }
 
   @Override
   public Object visitRecDeclaration(RecDeclaration ast, Object o) {
+    registerProcFuncsIDs((ProcFuncs) ast.D);
+    ast.D.visit(this,null);
     return null;
+  }
+
+  public void registerProcFuncsIDs(ProcFuncs ast){
+    registerProcFuncID(ast.D2);
+
+    if(ast.D1 instanceof ProcFuncs){
+      registerProcFuncsIDs((ProcFuncs) ast.D1);
+    } else{
+      registerProcFuncID(ast.D1);
+    }
+  }
+
+  public void registerProcFuncID(Declaration procFunc){
+    if(procFunc instanceof ProcDeclaration){
+      ProcDeclaration procDeclaration = (ProcDeclaration) procFunc;
+      idTable.enter(procDeclaration.I.spelling, procDeclaration);
+
+      if (procDeclaration.duplicated)
+        reporter.reportError ("identifier \"%\" already declared",
+                procDeclaration.I.spelling, procDeclaration.position);
+      procDeclaration.FPS.visit(this, true);
+    } else {
+      FuncDeclaration funcDeclaration = (FuncDeclaration) procFunc;
+      idTable.enter(funcDeclaration.I.spelling, funcDeclaration);
+
+      if (funcDeclaration.duplicated)
+        reporter.reportError ("identifier \"%\" already declared",
+                funcDeclaration.I.spelling, funcDeclaration.position);
+      funcDeclaration.FPS.visit(this, true);
+    }
   }
 
   @Override
@@ -316,10 +351,13 @@ public final class Checker implements Visitor {
 
   public Object visitFuncDeclaration(FuncDeclaration ast, Object o) {
     ast.T = (TypeDenoter) ast.T.visit(this, null);
-    idTable.enter (ast.I.spelling, ast); // permits recursion
-    if (ast.duplicated)
-      reporter.reportError ("identifier \"%\" already declared",
-                            ast.I.spelling, ast.position);
+
+    if(o == null){
+      idTable.enter (ast.I.spelling, ast); // permits recursion
+      if (ast.duplicated)
+        reporter.reportError ("identifier \"%\" already declared",
+                ast.I.spelling, ast.position);
+    }
     idTable.openScope();
     ast.FPS.visit(this, null);
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
@@ -331,10 +369,12 @@ public final class Checker implements Visitor {
   }
 
   public Object visitProcDeclaration(ProcDeclaration ast, Object o) {
-    idTable.enter (ast.I.spelling, ast); // permits recursion
-    if (ast.duplicated)
-      reporter.reportError ("identifier \"%\" already declared",
-                            ast.I.spelling, ast.position);
+    if(o == null){
+      idTable.enter (ast.I.spelling, ast); // permits recursion
+      if (ast.duplicated)
+        reporter.reportError ("identifier \"%\" already declared",
+                ast.I.spelling, ast.position);
+    }
     idTable.openScope();
     ast.FPS.visit(this, null);
     ast.C.visit(this, null);
@@ -450,11 +490,18 @@ public final class Checker implements Visitor {
   }
 
   public Object visitVarFormalParameter(VarFormalParameter ast, Object o) {
-    ast.T = (TypeDenoter) ast.T.visit(this, null);
-    idTable.enter (ast.I.spelling, ast);
-    if (ast.duplicated)
-      reporter.reportError ("duplicated formal parameter \"%\"",
-                            ast.I.spelling, ast.position);
+
+    if(o != null) {
+      ast.T = (TypeDenoter) ast.T.visit(this, null);
+    }
+    else{
+      ast.T = (TypeDenoter) ast.T.visit(this, null);
+      idTable.enter (ast.I.spelling, ast);
+      if (ast.duplicated)
+        reporter.reportError ("duplicated formal parameter \"%\"",
+                ast.I.spelling, ast.position);
+    }
+
     return null;
   }
 
@@ -463,13 +510,19 @@ public final class Checker implements Visitor {
   }
 
   public Object visitMultipleFormalParameterSequence(MultipleFormalParameterSequence ast, Object o) {
-    ast.FP.visit(this, null);
-    ast.FPS.visit(this, null);
+    if(o != null){
+      ast.FP.visit(this, o);
+      ast.FPS.visit(this,o);
+    }
+    else {
+      ast.FP.visit(this, null);
+      ast.FPS.visit(this, null);
+    }
     return null;
   }
 
   public Object visitSingleFormalParameterSequence(SingleFormalParameterSequence ast, Object o) {
-    ast.FP.visit(this, null);
+    ast.FP.visit(this, o);
     return null;
   }
 
