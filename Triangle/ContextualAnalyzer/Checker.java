@@ -48,8 +48,11 @@ public final class Checker implements Visitor {
     if(!(e1Type.equals(StdEnvironment.integerType)) && !(e2Type.equals(StdEnvironment.integerType))){
       reporter.reportError("Expressions types must be integer", "", ast.E1.position);
     }
+    idTable.openScope();
+    ast.I.visit(this, null); //Dejar la declaracion a la variable metida en el objeto TODO revisar
+    idTable.enter(ast.I.spelling, new VarDeclaration(ast.I, e1Type, ast.position)); //TODO Usa la posicion del FOR COMMAND, PREGUNTAR A NACHO
     ast.C.visit(this, null);
-
+    idTable.closeScope();
     return null;
   }
 
@@ -76,7 +79,12 @@ public final class Checker implements Visitor {
 
   @Override
   public Object visitArrayStatic(ArrayTypeDenoterStatic ast, Object o) {
-    return null;
+    ast.T = (TypeDenoter) ast.T.visit(this, null); //TODO Esto se agrego, siguiendo la vara de array type denoter
+    if (Integer.parseInt(ast.IL.spelling) > Integer.parseInt(ast.IL2.spelling))
+      reporter.reportError("Second integer must be greater than the first one","",ast.getPosition());
+    else if ((Integer.valueOf(ast.IL.spelling).intValue()) == 0) //TODO Creo que hay que agregar la misma condicion para IL2
+      reporter.reportError ("arrays must not be empty", "", ast.IL.position);
+    return ast;
   }
 
   @Override
@@ -153,7 +161,7 @@ public final class Checker implements Visitor {
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
     if (!ast.V.variable)
       reporter.reportError ("LHS of assignment is not a variable", "", ast.V.position);
-    if (! eType.equals(vType))
+    if (!eType.equals(vType))
       reporter.reportError ("assignment incompatibilty", "", ast.position);
     return null;
   }

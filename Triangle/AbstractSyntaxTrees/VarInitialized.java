@@ -19,5 +19,6 @@ public class VarInitialized extends Declaration {
 
     public Identifier I;
     public Expression E;
+    public TypeDenoter T; //TODO Agregado para revisar proyecto 2
 
 }
