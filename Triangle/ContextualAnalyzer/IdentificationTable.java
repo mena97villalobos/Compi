@@ -15,10 +15,13 @@
 package Triangle.ContextualAnalyzer;
 
 import Triangle.AbstractSyntaxTrees.Declaration;
+import Triangle.AbstractSyntaxTrees.PrivateDeclaration;
+
+import java.util.ArrayList;
 
 public final class IdentificationTable {
 
-  public int level;
+  private int level;
   private IdEntry latest;
 
   public IdentificationTable () {
@@ -49,6 +52,25 @@ public final class IdentificationTable {
     }
     this.level--;
     this.latest = entry;
+  }
+
+  public void closePrivateScope(ArrayList<Integer> cantidadDeclaraciones){
+    IdEntry segundasDeclaraciones =this.latest;
+
+    for(int i = cantidadDeclaraciones.get(1) ; i>1 ;i--){
+      segundasDeclaraciones.level--;
+      segundasDeclaraciones = segundasDeclaraciones.previous;
+    }
+    segundasDeclaraciones.level --; //Disminuya un nivel al ultimo que salio
+
+    IdEntry primerDeclaracionPrivada = segundasDeclaraciones.previous;// Aqui inicia la ultima declaracion privada
+    for(int i = cantidadDeclaraciones.get(0) ; i>1 ;i--){
+
+      primerDeclaracionPrivada = primerDeclaracionPrivada.previous;
+    }
+
+    segundasDeclaraciones.previous = primerDeclaracionPrivada.previous; //Aqui, se apunta la primer variable de la segunda declaracion del private a el primer bloque
+    level--;
   }
 
   // Makes a new entry in the identification table for the given identifier

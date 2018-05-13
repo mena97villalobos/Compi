@@ -20,6 +20,8 @@ import Triangle.ErrorReporter;
 import Triangle.StdEnvironment;
 import Triangle.SyntacticAnalyzer.SourcePosition;
 
+import java.util.ArrayList;
+
 public final class Checker implements Visitor {
 
   //<editor-fold desc="Funciones agregadas por el proyecto 1 implementacion se deja para futuros proyectos">
@@ -82,7 +84,7 @@ public final class Checker implements Visitor {
     ast.T = (TypeDenoter) ast.T.visit(this, null); //TODO Esto se agrego, siguiendo la vara de array type denoter
     if (Integer.parseInt(ast.IL.spelling) > Integer.parseInt(ast.IL2.spelling))
       reporter.reportError("Second integer must be greater than the first one","",ast.getPosition());
-    else if ((Integer.valueOf(ast.IL.spelling).intValue()) == 0) //TODO Creo que hay que agregar la misma condicion para IL2
+    else if ((Integer.valueOf(ast.IL.spelling).intValue()) == 0)
       reporter.reportError ("arrays must not be empty", "", ast.IL.position);
     return ast;
   }
@@ -135,11 +137,39 @@ public final class Checker implements Visitor {
 
   @Override
   public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
+      ArrayList<Integer> cantidadDeclaraciones  = new ArrayList<>();
+      cantidadDeclaraciones.add(0);
+      cantidadDeclaraciones.add(0);
+
+      contarDeclaraciones(ast.D1,cantidadDeclaraciones,true); // Este cuenta cuantas declaraciones hay en el private
+      contarDeclaraciones(ast.D2,cantidadDeclaraciones,false); // Este cuenta cuantas declaraciones hay en el in del private
+
+      //System.out.println("Cantidad en Private: "+cantidadDeclaraciones.get(0));
+      //System.out.println("Cantidad después de Private: "+cantidadDeclaraciones.get(1));
+
       idTable.openScope();
       ast.D1.visit(this, null);
       ast.D2.visit(this, null);
-      idTable.closeScope();
+      idTable.closePrivateScope(cantidadDeclaraciones);
       return null;
+  }
+
+  public void contarDeclaraciones(Declaration declaraciones,ArrayList<Integer> cantDeclaraciones,boolean privado){
+    // Este cuenta a D2 que es simple
+    if(declaraciones instanceof SequentialDeclaration){ //TODO Solo estoy asumiendo para declaraciones tipo VarDeclaration y VarInitialized ya que estas cuando son varias, se acumulan en un Sequential Declaration
+      contarDeclaraciones(((SequentialDeclaration) declaraciones).D1,cantDeclaraciones,privado);
+      sumaPrivadoNoPrivado(privado,cantDeclaraciones); // Aqui suma al D2 que estaria solito
+    }
+    else{
+      sumaPrivadoNoPrivado(privado,cantDeclaraciones);
+    }
+  }
+
+  public void sumaPrivadoNoPrivado(boolean privado, ArrayList<Integer> cantDeclaraciones){
+    if (privado)
+      cantDeclaraciones.set(0,cantDeclaraciones.get(0)+1);
+    else
+      cantDeclaraciones.set(1,cantDeclaraciones.get(1)+1);
   }
 
   @Override
