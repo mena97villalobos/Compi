@@ -144,8 +144,8 @@ public final class Checker implements Visitor {
       contarDeclaraciones(ast.D1,cantidadDeclaraciones,true); // Este cuenta cuantas declaraciones hay en el private
       contarDeclaraciones(ast.D2,cantidadDeclaraciones,false); // Este cuenta cuantas declaraciones hay en el in del private
 
-      //System.out.println("Cantidad en Private: "+cantidadDeclaraciones.get(0));
-      //System.out.println("Cantidad después de Private: "+cantidadDeclaraciones.get(1));
+      System.out.println("Cantidad en Private: "+cantidadDeclaraciones.get(0));
+      System.out.println("Cantidad después de Private: "+cantidadDeclaraciones.get(1));
 
       idTable.openScope();
       ast.D1.visit(this, null);
@@ -156,8 +156,12 @@ public final class Checker implements Visitor {
 
   public void contarDeclaraciones(Declaration declaraciones,ArrayList<Integer> cantDeclaraciones,boolean privado){
     // Este cuenta a D2 que es simple
-    if(declaraciones instanceof SequentialDeclaration){ //TODO Solo estoy asumiendo para declaraciones tipo VarDeclaration y VarInitialized ya que estas cuando son varias, se acumulan en un Sequential Declaration
+    if(declaraciones instanceof SequentialDeclaration ){ //TODO Solo estoy asumiendo para declaraciones tipo VarDeclaration y VarInitialized ya que estas cuando son varias, se acumulan en un Sequential Declaration
       contarDeclaraciones(((SequentialDeclaration) declaraciones).D1,cantDeclaraciones,privado);
+      sumaPrivadoNoPrivado(privado,cantDeclaraciones); // Aqui suma al D2 que estaria solito
+    }
+    else if (declaraciones instanceof ProcFuncs){
+      contarDeclaraciones(((ProcFuncs) declaraciones).D1,cantDeclaraciones,privado);
       sumaPrivadoNoPrivado(privado,cantDeclaraciones); // Aqui suma al D2 que estaria solito
     }
     else{
