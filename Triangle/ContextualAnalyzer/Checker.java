@@ -24,8 +24,7 @@ import java.util.ArrayList;
 
 public final class Checker implements Visitor {
 
-  //<editor-fold desc="Funciones agregadas por el proyecto 1 implementacion se deja para futuros proyectos">
-  //TODO Implementacion de las funciones agregadas por el proyecto 1 se deja para futuros proyectos
+  //<editor-fold desc="Funciones agregadas por el proyecto 2">
   public Object visitDoWhileCommand(DoWhileCommand ast, Object o) {
 
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
@@ -44,6 +43,7 @@ public final class Checker implements Visitor {
   }
 
   public Object visitForCommand(ForCommand ast, Object o){
+    //Visitar primero las expresiones para que no tengan visibilidad de la variable de control
     TypeDenoter e1Type = (TypeDenoter) ast.E1.visit(this, null);
     TypeDenoter e2Type = (TypeDenoter) ast.E2.visit(this, null);
 
@@ -51,8 +51,8 @@ public final class Checker implements Visitor {
       reporter.reportError("Expressions types must be integer", "", ast.E1.position);
     }
     idTable.openScope();
-    ast.I.visit(this, null); //Dejar la declaracion a la variable metida en el objeto TODO revisar
-    idTable.enter(ast.I.spelling, new VarDeclaration(ast.I, e1Type, ast.position)); //TODO Usa la posicion del FOR COMMAND, PREGUNTAR A NACHO
+    ast.I.visit(this, null);
+    idTable.enter(ast.I.spelling, new VarDeclaration(ast.I, e1Type, ast.position));
     ast.C.visit(this, null);
     idTable.closeScope();
     return null;
@@ -81,7 +81,7 @@ public final class Checker implements Visitor {
 
   @Override
   public Object visitArrayStatic(ArrayTypeDenoterStatic ast, Object o) {
-    ast.T = (TypeDenoter) ast.T.visit(this, null); //TODO Esto se agrego, siguiendo la vara de array type denoter
+    ast.T = (TypeDenoter) ast.T.visit(this, null);
     if (Integer.parseInt(ast.IL.spelling) > Integer.parseInt(ast.IL2.spelling))
       reporter.reportError("Second integer must be greater than the first one","",ast.getPosition());
     else if ((Integer.valueOf(ast.IL.spelling).intValue()) == 0)
@@ -156,7 +156,7 @@ public final class Checker implements Visitor {
 
   public void contarDeclaraciones(Declaration declaraciones,ArrayList<Integer> cantDeclaraciones,boolean privado){
     // Este cuenta a D2 que es simple
-    if(declaraciones instanceof SequentialDeclaration ){ //TODO Solo estoy asumiendo para declaraciones tipo VarDeclaration y VarInitialized ya que estas cuando son varias, se acumulan en un Sequential Declaration
+    if(declaraciones instanceof SequentialDeclaration ){
       contarDeclaraciones(((SequentialDeclaration) declaraciones).D1,cantDeclaraciones,privado);
       sumaPrivadoNoPrivado(privado,cantDeclaraciones); // Aqui suma al D2 que estaria solito
     }

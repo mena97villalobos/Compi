@@ -18,7 +18,7 @@ public class ArrayTypeDenoterStatic extends TypeDenoter {
         return v.visitArrayStatic(this, o);
     }
 
-    public boolean equals(Object obj){ // TODO Agregado, siguiendo la vara de ArrayTypeDenoter
+    public boolean equals(Object obj){ //Se añade de en el proyecto 2 para comparacion de tipo
         if (obj != null && obj instanceof ErrorTypeDenoter)
             return true;
         else if (obj != null && obj instanceof ArrayTypeDenoterStatic)
