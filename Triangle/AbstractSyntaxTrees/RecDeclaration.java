@@ -15,5 +15,6 @@ public class RecDeclaration extends Declaration {
     public Object visit(Visitor v, Object o) {
         return v.visitRecDeclaration(this,o);
     }
+
    public Declaration D;
 }

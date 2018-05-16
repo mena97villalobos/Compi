@@ -115,12 +115,10 @@ public class Compiler {
      */
     public static void main(String[] args) {
         boolean compiledOK;
-
         if (args.length != 1) {
             System.out.println("Usage: tc filename");
             System.exit(1);
         }
-
         String sourceName = args[0];
         compiledOK = compileProgram(sourceName, objectName, false, false);
     }

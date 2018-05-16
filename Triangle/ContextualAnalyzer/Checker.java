@@ -93,7 +93,6 @@ public final class Checker implements Visitor {
   public Object visitProcFuncs(ProcFuncs ast, Object o) {
     ast.D2.visit(this, true);
     ast.D1.visit(this, true);
-
     return null;
   }
 
