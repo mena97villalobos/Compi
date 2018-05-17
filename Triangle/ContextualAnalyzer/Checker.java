@@ -46,13 +46,19 @@ public final class Checker implements Visitor {
     //Visitar primero las expresiones para que no tengan visibilidad de la variable de control
     TypeDenoter e1Type = (TypeDenoter) ast.E1.visit(this, null);
     TypeDenoter e2Type = (TypeDenoter) ast.E2.visit(this, null);
-
     if(!(e1Type.equals(StdEnvironment.integerType)) && !(e2Type.equals(StdEnvironment.integerType))){
       reporter.reportError("Expressions types must be integer", "", ast.E1.position);
     }
     idTable.openScope();
     ast.I.visit(this, null);
     idTable.enter(ast.I.spelling, new VarDeclaration(ast.I, e1Type, ast.position));
+    int revision = ast.revisarCommand(ast.C);
+    if(revision == -1){
+      reporter.reportError("Control Variable must not be used in assign command", "", ast.C.position);
+    }
+    else if(revision == -2){
+      reporter.reportError("Control Variable must not be passed by reference", "", ast.C.position);
+    }
     ast.C.visit(this, null);
     idTable.closeScope();
     return null;
@@ -139,13 +145,8 @@ public final class Checker implements Visitor {
       ArrayList<Integer> cantidadDeclaraciones  = new ArrayList<>();
       cantidadDeclaraciones.add(0);
       cantidadDeclaraciones.add(0);
-
       contarDeclaraciones(ast.D1,cantidadDeclaraciones,true); // Este cuenta cuantas declaraciones hay en el private
       contarDeclaraciones(ast.D2,cantidadDeclaraciones,false); // Este cuenta cuantas declaraciones hay en el in del private
-
-      System.out.println("Cantidad en Private: "+cantidadDeclaraciones.get(0));
-      System.out.println("Cantidad después de Private: "+cantidadDeclaraciones.get(1));
-
       idTable.openScope();
       ast.D1.visit(this, null);
       ast.D2.visit(this, null);

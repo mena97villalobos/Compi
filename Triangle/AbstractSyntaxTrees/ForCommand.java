@@ -16,6 +16,58 @@ public class ForCommand extends Command {
         return v.visitForCommand(this, o);
     }
 
+    public int revisarCommand(Command c){
+        if(c instanceof SequentialCommand){
+            int a = revisarCommand(((SequentialCommand) c).C1);
+            int b = revisarCommand(((SequentialCommand) c).C2);
+            if(a == -1 || b == -1){
+                return -1;
+            }
+        }
+        else if(c instanceof AssignCommand){
+            try{
+                SimpleVname sv = (SimpleVname) ((AssignCommand) c).V;
+                if(sv.I.spelling.equals(this.I.spelling)){
+                    return -1;
+                }
+            }
+            catch (Exception e){
+                return 1;
+            }
+        }
+        else if (c instanceof CallCommand){
+            int retorno = revisarArgumentos(((CallCommand) c).APS);
+            if(retorno == -2){
+                return -2;
+            }
+        }
+        return 1;
+    }
+
+    public int revisarArgumentos(ActualParameterSequence ast){
+        if(ast instanceof SingleActualParameterSequence){
+            try{
+                VarActualParameter vap =(VarActualParameter) ((SingleActualParameterSequence) ast).AP;
+                SimpleVname sv = (SimpleVname) vap.V;
+                if(sv.I.spelling.equals(this.I.spelling)){
+                    return -2;
+                }
+            }
+            catch (Exception e){
+
+            }
+        }
+        else if(ast instanceof MultipleActualParameterSequence){
+            VarActualParameter vap =(VarActualParameter) ((MultipleActualParameterSequence) ast).AP;
+            SimpleVname sv = (SimpleVname) vap.V;
+            if(sv.I.spelling.equals(this.I.spelling)){
+                return -2;
+            }
+            int retorno = revisarArgumentos(((MultipleActualParameterSequence) ast).APS);
+        }
+        return 1;
+    }
+
     public Identifier I;
     public Expression E1;
     public Expression E2;
