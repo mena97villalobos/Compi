@@ -30,6 +30,15 @@ public class ForCommand extends Command {
                 if(sv.I.spelling.equals(this.I.spelling)){
                     return -1;
                 }
+                else{
+                    try{
+                        CallExpression ce = (CallExpression) ((AssignCommand) c).E;
+                        return revisarArgumentos(ce.APS);
+                    }
+                    catch (Exception e1){
+                        return 1;
+                    }
+                }
             }
             catch (Exception e){
                 return 1;
@@ -44,7 +53,7 @@ public class ForCommand extends Command {
         return 1;
     }
 
-    public int revisarArgumentos(ActualParameterSequence ast){
+    private int revisarArgumentos(ActualParameterSequence ast){
         if(ast instanceof SingleActualParameterSequence){
             try{
                 VarActualParameter vap =(VarActualParameter) ((SingleActualParameterSequence) ast).AP;
@@ -54,7 +63,14 @@ public class ForCommand extends Command {
                 }
             }
             catch (Exception e){
-
+                try{
+                    ConstActualParameter cap = (ConstActualParameter) ((SingleActualParameterSequence)ast).AP;
+                    CallExpression ce = (CallExpression) cap.E;
+                    return revisarArgumentos(ce.APS);
+                }
+                catch (Exception e1){
+                    return 1;
+                }
             }
         }
         else if(ast instanceof MultipleActualParameterSequence){
@@ -63,7 +79,7 @@ public class ForCommand extends Command {
             if(sv.I.spelling.equals(this.I.spelling)){
                 return -2;
             }
-            int retorno = revisarArgumentos(((MultipleActualParameterSequence) ast).APS);
+            revisarArgumentos(((MultipleActualParameterSequence) ast).APS);
         }
         return 1;
     }
