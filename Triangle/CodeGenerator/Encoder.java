@@ -25,6 +25,8 @@ import Triangle.AbstractSyntaxTrees.*;
 import Triangle.ErrorReporter;
 import Triangle.StdEnvironment;
 
+import javax.crypto.Mac;
+
 public final class Encoder implements Visitor {
 
 
@@ -51,7 +53,6 @@ public final class Encoder implements Visitor {
   public Object visitIfCommand(IfCommand ast, Object o) {
     Frame frame = (Frame) o;
     int jumpifAddr, jumpAddr;
-
     Integer valSize = (Integer) ast.E.visit(this, frame);
     jumpifAddr = nextInstrAddr;
     emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, 0);
@@ -82,7 +83,6 @@ public final class Encoder implements Visitor {
   public Object visitWhileCommand(WhileCommand ast, Object o) {
     Frame frame = (Frame) o;
     int jumpAddr, loopAddr;
-
     jumpAddr = nextInstrAddr;
     emit(Machine.JUMPop, 0, Machine.CBr, 0);
     loopAddr = nextInstrAddr;
@@ -96,21 +96,53 @@ public final class Encoder implements Visitor {
   //TODO Funciones por implementar que deja el Proyecto 1 de linea 96 a la 143
   @Override
   public Object visitDoWhileCommand(DoWhileCommand ast, Object o) {
+    Frame frame = (Frame) o;
+    int loopAddr;
+    loopAddr = nextInstrAddr; //Almacena la direccion de codigo donde inicia el comando para poder regresar en el do while
+    ast.C.visit(this, frame);
+    ast.E.visit(this, frame);
+    emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, loopAddr);
     return null;
   }
 
   @Override
   public Object visitDoUntilCommand(DoUntilCommand ast, Object o) {
+    Frame frame = (Frame) o;
+    int loopAddr;
+    loopAddr = nextInstrAddr; //Almacena la direccion de codigo donde inicia el comando para poder regresar en el do while
+    ast.C.visit(this, frame);
+    ast.E.visit(this, frame);
+    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr); // Si se asume que el until itera hasta que E sea verdadera
     return null;
   }
 
   @Override
   public Object visitUntilCommand(UntilCommand ast, Object o) {
+    Frame frame = (Frame) o;
+    int jumpAddr, loopAddr;
+    jumpAddr = nextInstrAddr;
+    emit(Machine.JUMPop, 0, Machine.CBr, 0);
+    loopAddr = nextInstrAddr;
+    ast.C.visit(this, frame);
+    patch(jumpAddr, nextInstrAddr);
+    ast.E.visit(this, frame);
+    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr); // Si se asume que el until itera hasta que E sea verdadera
     return null;
   }
 
   @Override
   public Object visitElsifCommand(ElsifCommand ast, Object o) {
+    Frame frame = (Frame) o;
+    int jumpElsifAddr, jumpAddr;
+    Integer valSize = (Integer) ast.E.visit(this, frame);
+    jumpElsifAddr = nextInstrAddr;
+    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, 0); // Por parchear 1 Si es falso salte a tal direccion
+    ast.C1.visit(this, frame);
+    jumpAddr = nextInstrAddr;
+    emit(Machine.JUMPop, 0, Machine.CBr, 0); // Si ejecuta el elsif salte al final del comando
+    patch(jumpElsifAddr, nextInstrAddr); // Parchea 1
+    ast.C2.visit(this, frame);
+    patch(jumpAddr, nextInstrAddr);
     return null;
   }
 
@@ -121,7 +153,13 @@ public final class Encoder implements Visitor {
 
   @Override
   public Object visitVarInitialized(VarInitialized ast, Object o) {
-    return null;
+    VarDeclaration vd = new VarDeclaration(ast.I, ast.T, ast.position);
+    Integer extraSize = (Integer) vd.visit(this, o);
+    SimpleVname sv = new SimpleVname(vd.I, ast.position);
+    sv.visit(this, o);
+    AssignCommand assignCommand = new AssignCommand(sv, ast.E, ast.position);
+    assignCommand.visit(this, o);
+    return extraSize;
   }
 
   @Override
@@ -340,7 +378,6 @@ public final class Encoder implements Visitor {
     writeTableDetails(ast);
     return new Integer(extraSize);
   }
-
 
   // Array Aggregates
   public Object visitMultipleArrayAggregate(MultipleArrayAggregate ast,
@@ -809,8 +846,7 @@ public final class Encoder implements Visitor {
 
   boolean tableDetailsReqd;
 
-  public static void writeTableDetails(AST ast) {
-  }
+  public static void writeTableDetails(AST ast) { }
 
   // OBJECT CODE
 
@@ -828,9 +864,9 @@ public final class Encoder implements Visitor {
         n = 255; // to allow code generation to continue
     }
     nextInstr.op = op;
-    nextInstr.n = n;
-    nextInstr.r = r;
-    nextInstr.d = d;
+    nextInstr.n = n; //Tamanno del campo
+    nextInstr.r = r; //registro
+    nextInstr.d = d; // op field
     if (nextInstrAddr == Machine.PB)
       reporter.reportRestriction("too many instructions for code segment");
     else {

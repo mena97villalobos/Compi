@@ -64,7 +64,6 @@ public final class Checker implements Visitor {
     return null;
   }
 
-  @Override
   public Object visitUntilCommand(UntilCommand ast, Object o) {
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
     if (! eType.equals(StdEnvironment.booleanType))
@@ -73,11 +72,10 @@ public final class Checker implements Visitor {
     return null;
   }
 
-  @Override
   public Object visitVarInitialized(VarInitialized ast, Object o) {
-    TypeDenoter eType = (TypeDenoter) ast.E.visit(this,null);
-    ast.I.type = eType;
+    ast.T = (TypeDenoter) ast.E.visit(this,null);
     idTable.enter (ast.I.spelling, ast);
+    Declaration binding = (Declaration) ast.I.visit(this, null);
     if (ast.duplicated)
       reporter.reportError ("identifier \"%\" already declared",
               ast.I.spelling, ast.position);
@@ -823,10 +821,8 @@ public final class Checker implements Visitor {
         ast.type = ((VarDeclaration) binding).T;
         ast.variable = true;
 
-
-
       } else if(binding instanceof VarInitialized) {
-        ast.type = ((VarInitialized) binding).I.type;
+        ast.type = ((VarInitialized) binding).T;
         ast.variable = true;
     }
         else if (binding instanceof ConstFormalParameter) {

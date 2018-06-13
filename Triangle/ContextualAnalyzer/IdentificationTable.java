@@ -79,7 +79,6 @@ public final class IdentificationTable {
   // same identifier at the current level.
 
   public void enter (String id, Declaration attr) {
-
     IdEntry entry = this.latest;
     boolean present = false, searching = true;
 
