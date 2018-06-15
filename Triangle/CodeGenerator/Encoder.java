@@ -35,7 +35,7 @@ public final class Encoder implements Visitor {
     Frame frame = (Frame) o;
     Integer valSize = (Integer) ast.E.visit(this, frame);
     encodeStore(ast.V, new Frame (frame, valSize.intValue()),
-		valSize.intValue());
+            valSize.intValue());
     return null;
   }
 
@@ -148,6 +148,44 @@ public final class Encoder implements Visitor {
 
   @Override
   public Object visitForCommand(ForCommand ast, Object o) {
+    //"loop" "for" Identifier ":=" Expression "to" Expression "do" Command "end"
+
+
+
+    Frame frame = (Frame) o;
+
+    int jumpAddr, loopAddr;
+
+
+    ast.E1.visit(this, frame);
+    ast.E2.visit(this, frame);
+    ast.I.decl.visit(this,frame);
+
+    jumpAddr = nextInstrAddr;
+    emit(Machine.JUMPop, 0, Machine.CBr, 0);
+    loopAddr = nextInstrAddr;
+    //
+    ast.C.visit(this, frame);
+    emit(Machine.LOADop, 1, Machine.STr, -3);//-2
+    emit(Machine.CALLop, 0, Machine.PBr, Machine.succDisplacement); //  Incrementa contador
+    emit(Machine.STOREop, 1, Machine.STr, -4);//-3
+
+    patch(jumpAddr, nextInstrAddr);
+
+    emit(Machine.LOADop, 1, Machine.STr, -3);
+    emit(Machine.LOADop, 1, Machine.STr, -3);
+    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.gtDisplacement);
+    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);
+    /*emit(Machine.LOADop, 1, Machine.STr, -2);
+    ast.C.visit(this, frame);
+    emit(Machine.LOADop, 1, Machine.STr, -2);
+    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.succDisplacement);
+    emit(Machine.STOREop, 1, Machine.STr, -3);
+    patch(jumpAddr, nextInstrAddr);
+    emit(Machine.LOADop, 1, Machine.STr, -2);
+    emit(Machine.LOADop, 1, Machine.STr, -2);
+    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.gtDisplacement);
+    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);*/
     return null;
   }
 
@@ -168,18 +206,18 @@ public final class Encoder implements Visitor {
   }
 
   @Override
-  public Object visitProcFuncs(ProcFuncs ast, Object o) {
-    return null;
+  public Object visitProcFuncs(ProcFuncs ast, Object o) { return null;
   }
 
   @Override
   public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
-    return null;
+    int extra1 = (Integer) ast.D1.visit(this, o);
+    extra1 += (Integer) ast.D2.visit(this, o);
+    return extra1;
   }
 
   @Override
-  public Object visitRecDeclaration(RecDeclaration ast, Object o) {
-    return null;
+  public Object visitRecDeclaration(RecDeclaration ast, Object o) {return null;
   }
 
 

@@ -50,8 +50,10 @@ public final class Checker implements Visitor {
       reporter.reportError("Expressions types must be integer", "", ast.E1.position);
     }
     idTable.openScope();
-    ast.I.visit(this, null);
+
+
     idTable.enter(ast.I.spelling, new VarDeclaration(ast.I, e1Type, ast.position));
+    ast.I.visit(this, null); //TODO SWAP DE 55 Y 56
     int revision = ast.revisarCommand(ast.C);
     if(revision == -1){
       reporter.reportError("Control Variable must not be used in assign command", "", ast.C.position);

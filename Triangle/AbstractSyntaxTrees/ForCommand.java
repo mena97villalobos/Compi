@@ -20,9 +20,12 @@ public class ForCommand extends Command {
         if(c instanceof SequentialCommand){
             int a = revisarCommand(((SequentialCommand) c).C1);
             int b = revisarCommand(((SequentialCommand) c).C2);
-            if(a == -1 || b == -1){
-                return -1;
-            }
+            if(a != 1)
+                return a;
+            else if(b != 1)
+                return b;
+            else
+                return 1;
         }
         else if(c instanceof AssignCommand){
             try{
@@ -62,24 +65,25 @@ public class ForCommand extends Command {
                     return -2;
                 }
             }
-            catch (Exception e){
-                try{
-                    ConstActualParameter cap = (ConstActualParameter) ((SingleActualParameterSequence)ast).AP;
-                    CallExpression ce = (CallExpression) cap.E;
-                    return revisarArgumentos(ce.APS);
-                }
-                catch (Exception e1){
-                    return 1;
-                }
+            catch (Exception ignored){
             }
         }
         else if(ast instanceof MultipleActualParameterSequence){
-            VarActualParameter vap =(VarActualParameter) ((MultipleActualParameterSequence) ast).AP;
-            SimpleVname sv = (SimpleVname) vap.V;
-            if(sv.I.spelling.equals(this.I.spelling)){
-                return -2;
+            try {
+                VarActualParameter vap = (VarActualParameter) ((MultipleActualParameterSequence) ast).AP;
+                SimpleVname sv = (SimpleVname) vap.V;
+                if (sv.I.spelling.equals(this.I.spelling)) {
+                    return -2;
+                }
+                int retorno = revisarArgumentos(((MultipleActualParameterSequence) ast).APS);
+                if(retorno == -2)
+                    return -2;
+
+            }catch (Exception e){
+                int ret =  revisarArgumentos(((MultipleActualParameterSequence) ast).APS);
+                if(ret == -2)
+                    return -2;
             }
-            revisarArgumentos(((MultipleActualParameterSequence) ast).APS);
         }
         return 1;
     }
