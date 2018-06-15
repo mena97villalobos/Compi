@@ -66,6 +66,17 @@ public class ForCommand extends Command {
                 }
             }
             catch (Exception ignored){
+                /*
+                try{
+                    ConstActualParameter cap = (ConstActualParameter) ((SingleActualParameterSequence)ast).AP;
+                    SimpleVname ce = (SimpleVname) ((VnameExpression)cap.E).V;
+                    if(ce.I.spelling.equals(this.I.spelling))
+                        return -2;
+                }
+                catch (Exception e1){
+                    return 1;
+                }
+                */
             }
         }
         else if(ast instanceof MultipleActualParameterSequence){

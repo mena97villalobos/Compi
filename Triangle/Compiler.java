@@ -121,7 +121,7 @@ public class Compiler {
             System.exit(1);
         }
         */
-        String sourceName = "C:\\Users\\mena9\\Desktop\\pruebas.tri";//args[0];
+        String sourceName = "C:\\Users\\mena9\\Desktop\\NothingErr2.tri";// args[0]; //TODO comentario para debuggear
         compiledOK = compileProgram(sourceName, objectName, false, false);
     }
 }

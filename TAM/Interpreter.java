@@ -44,7 +44,7 @@ public class Interpreter {
   final static int
     running = 0, halted = 1, failedDataStoreFull = 2, failedInvalidCodeAddress = 3,
     failedInvalidInstruction = 4, failedOverflow = 5, failedZeroDivide = 6,
-    failedIOError = 7;
+    failedIOError = 7, indexoutofbound = 8;
 
   static long
     accumulator;
@@ -206,6 +206,11 @@ public class Interpreter {
       case failedIOError:
         System.out.println("Program has failed due to an IO error.");
         break;
+      case indexoutofbound:
+        //TODO agregado
+        System.out.println("Index Out of Bound");
+        break;
+
     }
     if (status != halted)
       dump();
@@ -428,6 +433,15 @@ public class Interpreter {
       case Machine.disposeDisplacement:
         ST = ST - 1; // no action taken at present
         break;
+      case Machine.indexcheck:
+        ST = ST - 1;
+        accumulator = data[ST - 1];
+        if(!(accumulator >= data[ST])){
+          status = indexoutofbound;
+        }
+        ST = ST - 1;
+        break;
+        //TODO :'v
     }
   }
 
@@ -616,12 +630,12 @@ public class Interpreter {
 
   public static void main(String[] args) {
     System.out.println("********** TAM Interpreter (Java Version 2.1) **********");
-
     if (args.length == 1)
       objectName = args[0];
   	else
       objectName = "obj.tam";
-
+    //TODO comentario para debuggear
+    //objectName = "C:\\Users\\mena9\\Desktop\\NothingErr2.tam";
     loadObjectProgram(objectName);
     if (CT != CB) {
       interpretProgram();

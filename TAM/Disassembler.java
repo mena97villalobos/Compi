@@ -222,6 +222,8 @@ public class Disassembler {
       case Machine.disposeDisplacement:
 	System.out.print ("dispose ");
 	break;
+        case Machine.indexcheck:
+            System.out.println("indexcheck ");
     }
   }
 
