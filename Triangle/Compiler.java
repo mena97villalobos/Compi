@@ -14,6 +14,8 @@
 
 package Triangle;
 
+import TAM.Instruction;
+import TAM.Machine;
 import Triangle.AbstractSyntaxTrees.Program;
 import Triangle.CodeGenerator.Encoder;
 import Triangle.ContextualAnalyzer.Checker;
@@ -121,7 +123,8 @@ public class Compiler {
             System.exit(1);
         }
         */
-        String sourceName = "C:\\Users\\mena9\\Desktop\\NothingErr2.tri";// args[0]; //TODO comentario para debuggear
-        compiledOK = compileProgram(sourceName, objectName, false, false);
+        String sourceName = "C:\\Users\\mena9\\Desktop\\NothingErr2.tri";//args[0]; //TODO comentario para debuggear
+        String objectNameAux = sourceName.replace(".tri", ".tam");
+        compiledOK = compileProgram(sourceName, objectNameAux, false, false);
     }
 }

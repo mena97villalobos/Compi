@@ -25,6 +25,7 @@ import Triangle.AbstractSyntaxTrees.*;
 import Triangle.ErrorReporter;
 import Triangle.StdEnvironment;
 
+import javax.crypto.Mac;
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -152,43 +153,27 @@ public final class Encoder implements Visitor {
   @Override
   public Object visitForCommand(ForCommand ast, Object o) {
     //"loop" "for" Identifier ":=" Expression "to" Expression "do" Command "end"
-
-
-
-    Frame frame = (Frame) o;
-
     int jumpAddr, loopAddr;
-
-
-    ast.E1.visit(this, frame);
-    ast.E2.visit(this, frame);
-    ast.I.decl.visit(this,frame);
-
+    Frame frame = (Frame) o;
+    SimpleVname sv = new SimpleVname(ast.I, ast.I.position);
+    emit(Machine.PUSHop, 0, 0, 1);
+    sv.I.decl.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
+    ast.E1.visit(this, frame); //Obtener el valor de la variable de control
+    encodeStore(sv, frame, Machine.integerSize);
+    ast.E2.visit(this, frame); // Obtener el valor hasta el que hay que llegar
     jumpAddr = nextInstrAddr;
     emit(Machine.JUMPop, 0, Machine.CBr, 0);
     loopAddr = nextInstrAddr;
-    //
     ast.C.visit(this, frame);
-    emit(Machine.LOADop, 1, Machine.STr, -3);//-2
-    emit(Machine.CALLop, 0, Machine.PBr, Machine.succDisplacement); //  Incrementa contador
-    emit(Machine.STOREop, 1, Machine.STr, -4);//-3
-
+    encodeFetch(sv, frame, Machine.integerSize);
+    emit(Machine.CALLop, 0, Machine.PBr, Machine.succDisplacement);
+    encodeStore(sv, frame, Machine.integerSize);
     patch(jumpAddr, nextInstrAddr);
-
-    emit(Machine.LOADop, 1, Machine.STr, -3);
-    emit(Machine.LOADop, 1, Machine.STr, -3);
+    encodeFetch(sv, frame, Machine.integerSize); //Jalar variable de control
+    emit(Machine.LOADop, 1, Machine.STr, -2);
     emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.gtDisplacement);
     emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);
-    /*emit(Machine.LOADop, 1, Machine.STr, -2);
-    ast.C.visit(this, frame);
-    emit(Machine.LOADop, 1, Machine.STr, -2);
-    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.succDisplacement);
-    emit(Machine.STOREop, 1, Machine.STr, -3);
-    patch(jumpAddr, nextInstrAddr);
-    emit(Machine.LOADop, 1, Machine.STr, -2);
-    emit(Machine.LOADop, 1, Machine.STr, -2);
-    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.gtDisplacement);
-    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);*/
+    emit(Machine.POPop, 0, 0, 2);
     return null;
   }
 
@@ -783,6 +768,7 @@ public final class Encoder implements Visitor {
                 emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.indexcheck);
                 elemSize = ((Integer) ast.type.visit(this, null)).intValue();
                 int indice = Integer.parseInt(IL.spelling) - il1;
+                IL.spelling = Integer.toString(indice);
                 ast.offset = ast.offset + indice * elemSize;
             }
             else if (ast.V.type instanceof ArrayTypeDenoter) {
@@ -826,6 +812,10 @@ public final class Encoder implements Visitor {
             if (ast.indexed)
                 frame.size = frame.size + Machine.integerSize;
             indexSize = ((Integer) ast.E.visit(this, frame)).intValue();
+            if(ast.V.type instanceof ArrayTypeDenoterStatic){
+              emit(Machine.LOADLop, 0, 0, Integer.parseInt(((ArrayTypeDenoterStatic) ast.V.type).IL.spelling));
+              emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.subDisplacement);
+            }
             if (elemSize != 1) {
                 emit(Machine.LOADLop, 0, 0, elemSize);
                 emit(Machine.CALLop, Machine.SBr, Machine.PBr,
@@ -1067,20 +1057,18 @@ public final class Encoder implements Visitor {
       // presumably offset = 0 and indexed = false
       int value = ((KnownValue) baseObject).value;
       emit(Machine.LOADLop, 0, 0, value);
-    } else if ((baseObject instanceof UnknownValue) ||
-               (baseObject instanceof KnownAddress)) {
-      ObjectAddress address = (baseObject instanceof UnknownValue) ?
-                              ((UnknownValue) baseObject).address :
-                              ((KnownAddress) baseObject).address;
+    }
+    else if ((baseObject instanceof UnknownValue) || (baseObject instanceof KnownAddress)) {
+      ObjectAddress address = (baseObject instanceof UnknownValue) ? ((UnknownValue) baseObject).address : ((KnownAddress) baseObject).address;
       if (V.indexed) {
-        emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level),
-             address.displacement + V.offset);
+        emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level), address.displacement + V.offset);
         emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
         emit(Machine.LOADIop, valSize, 0, 0);
-      } else
-        emit(Machine.LOADop, valSize, displayRegister(frame.level,
-	     address.level), address.displacement + V.offset);
-    } else if (baseObject instanceof UnknownAddress) {
+      }
+      else
+        emit(Machine.LOADop, valSize, displayRegister(frame.level, address.level), address.displacement + V.offset);
+    }
+    else if (baseObject instanceof UnknownAddress) {
       ObjectAddress address = ((UnknownAddress) baseObject).address;
       emit(Machine.LOADop, Machine.addressSize, displayRegister(frame.level,
            address.level), address.displacement);

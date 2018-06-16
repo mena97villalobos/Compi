@@ -633,9 +633,7 @@ public class Interpreter {
     if (args.length == 1)
       objectName = args[0];
   	else
-      objectName = "obj.tam";
-    //TODO comentario para debuggear
-    //objectName = "C:\\Users\\mena9\\Desktop\\NothingErr2.tam";
+      objectName = "C:\\Users\\mena9\\Desktop\\NothingErr2.tam"; //"obj.tam"; //TODO comentario para debuggear
     loadObjectProgram(objectName);
     if (CT != CB) {
       interpretProgram();
