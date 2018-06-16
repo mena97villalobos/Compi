@@ -121,8 +121,7 @@ public class Compiler {
         if (args.length != 1) {
             System.out.println("Usage: tc filename");
             System.exit(1);
-        }
-        */
+        }*/
         String sourceName = "C:\\Users\\mena9\\Desktop\\NothingErr2.tri";//args[0]; //TODO comentario para debuggear
         String objectNameAux = sourceName.replace(".tri", ".tam");
         compiledOK = compileProgram(sourceName, objectNameAux, false, false);

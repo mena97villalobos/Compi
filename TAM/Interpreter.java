@@ -451,6 +451,9 @@ public class Interpreter {
     Instruction currentInstr;
     int op, r, n, d, addr, index;
 
+    //Clear mem
+    Interpreter.data = new int[1024];
+
     // Initialize registers ...
     ST = SB;
     HT = HB;

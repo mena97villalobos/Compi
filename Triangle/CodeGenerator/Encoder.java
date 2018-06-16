@@ -24,6 +24,7 @@ import TAM.Machine;
 import Triangle.AbstractSyntaxTrees.*;
 import Triangle.ErrorReporter;
 import Triangle.StdEnvironment;
+import Triangle.SyntacticAnalyzer.SourcePosition;
 
 import javax.crypto.Mac;
 import java.io.DataOutputStream;
@@ -153,27 +154,37 @@ public final class Encoder implements Visitor {
   @Override
   public Object visitForCommand(ForCommand ast, Object o) {
     //"loop" "for" Identifier ":=" Expression "to" Expression "do" Command "end"
+
+    SourcePosition dummyPos = new SourcePosition();
+    Identifier dummyI = new Identifier("", dummyPos);
     int jumpAddr, loopAddr;
     Frame frame = (Frame) o;
-    SimpleVname sv = new SimpleVname(ast.I, ast.I.position);
-    emit(Machine.PUSHop, 0, 0, 1);
-    sv.I.decl.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
+    emit(Machine.PUSHop, 0, 0, 2);
+    SimpleVname expr1 = new SimpleVname(ast.I, ast.I.position);
+    SimpleVname expr2 = new SimpleVname(dummyI, dummyPos);
+    dummyI.decl = ast.E2;
+    expr1.I.decl.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
+    frame.size += 1;
+    expr2.I.decl.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
+    frame.size += 1;
     ast.E1.visit(this, frame); //Obtener el valor de la variable de control
-    encodeStore(sv, frame, Machine.integerSize);
+    encodeStore(expr1, frame, Machine.integerSize);
     ast.E2.visit(this, frame); // Obtener el valor hasta el que hay que llegar
+    encodeStore(expr2, frame, Machine.integerSize);
     jumpAddr = nextInstrAddr;
     emit(Machine.JUMPop, 0, Machine.CBr, 0);
     loopAddr = nextInstrAddr;
     ast.C.visit(this, frame);
-    encodeFetch(sv, frame, Machine.integerSize);
+    encodeFetch(expr1, frame, Machine.integerSize);
     emit(Machine.CALLop, 0, Machine.PBr, Machine.succDisplacement);
-    encodeStore(sv, frame, Machine.integerSize);
+    encodeStore(expr1, frame, Machine.integerSize);
     patch(jumpAddr, nextInstrAddr);
-    encodeFetch(sv, frame, Machine.integerSize); //Jalar variable de control
-    emit(Machine.LOADop, 1, Machine.STr, -2);
+    encodeFetch(expr1, frame, Machine.integerSize); //Jalar variable de control
+    encodeFetch(expr2, frame, Machine.integerSize);
     emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.gtDisplacement);
     emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);
     emit(Machine.POPop, 0, 0, 2);
+    frame.size -= 2;
     return null;
   }
 
