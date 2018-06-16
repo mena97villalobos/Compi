@@ -353,10 +353,14 @@ public class Parser {
             case Token.ELSE:
             case Token.IN:
             case Token.EOT:
+                /*
                 finish(commandPos);
                 commandAST = new EmptyCommand(commandPos);
                 break;
-
+                */
+                syntacticError("\"%\" cannot start a Empty Command", // Proyecto3 Solo acepta nothing como empty command
+                        currentToken.spelling);
+                break;
             default:
                 syntacticError("\"%\" cannot start a command",
                         currentToken.spelling);

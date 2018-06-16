@@ -46,7 +46,7 @@ public final class StdEnvironment {
     equalDecl, unequalDecl, lessDecl, notlessDecl, greaterDecl, notgreaterDecl;
 
   public static ProcDeclaration
-    getDecl, putDecl, getintDecl, putintDecl, geteolDecl, puteolDecl;
+    getDecl, putDecl, getintDecl, putintDecl, geteolDecl, puteolDecl, indexcheck; //TODO indexcheck agregado
 
   public static FuncDeclaration
     chrDecl, ordDecl, eolDecl, eofDecl;

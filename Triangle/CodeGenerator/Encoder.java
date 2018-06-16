@@ -26,6 +26,10 @@ import Triangle.ErrorReporter;
 import Triangle.StdEnvironment;
 
 import javax.crypto.Mac;
+import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public final class Encoder implements Visitor {
 
@@ -149,75 +153,73 @@ public final class Encoder implements Visitor {
   @Override
   public Object visitForCommand(ForCommand ast, Object o) {
     //"loop" "for" Identifier ":=" Expression "to" Expression "do" Command "end"
-
-
-
-    Frame frame = (Frame) o;
-
     int jumpAddr, loopAddr;
-
-
-    ast.E1.visit(this, frame);
-    ast.E2.visit(this, frame);
-    ast.I.decl.visit(this,frame);
-
+    Frame frame = (Frame) o;
+    SimpleVname sv = new SimpleVname(ast.I, ast.I.position);
+    emit(Machine.PUSHop, 0, 0, 1);
+    sv.I.decl.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
+    ast.E1.visit(this, frame); //Obtener el valor de la variable de control
+    encodeStore(sv, frame, Machine.integerSize);
+    ast.E2.visit(this, frame); // Obtener el valor hasta el que hay que llegar
     jumpAddr = nextInstrAddr;
     emit(Machine.JUMPop, 0, Machine.CBr, 0);
     loopAddr = nextInstrAddr;
-    //
     ast.C.visit(this, frame);
-    emit(Machine.LOADop, 1, Machine.STr, -3);//-2
-    emit(Machine.CALLop, 0, Machine.PBr, Machine.succDisplacement); //  Incrementa contador
-    emit(Machine.STOREop, 1, Machine.STr, -4);//-3
-
+    encodeFetch(sv, frame, Machine.integerSize);
+    emit(Machine.CALLop, 0, Machine.PBr, Machine.succDisplacement);
+    encodeStore(sv, frame, Machine.integerSize);
     patch(jumpAddr, nextInstrAddr);
-
-    emit(Machine.LOADop, 1, Machine.STr, -3);
-    emit(Machine.LOADop, 1, Machine.STr, -3);
+    encodeFetch(sv, frame, Machine.integerSize); //Jalar variable de control
+    emit(Machine.LOADop, 1, Machine.STr, -2);
     emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.gtDisplacement);
     emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);
-    /*emit(Machine.LOADop, 1, Machine.STr, -2);
-    ast.C.visit(this, frame);
-    emit(Machine.LOADop, 1, Machine.STr, -2);
-    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.succDisplacement);
-    emit(Machine.STOREop, 1, Machine.STr, -3);
-    patch(jumpAddr, nextInstrAddr);
-    emit(Machine.LOADop, 1, Machine.STr, -2);
-    emit(Machine.LOADop, 1, Machine.STr, -2);
-    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.gtDisplacement);
-    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);*/
+    emit(Machine.POPop, 0, 0, 2);
     return null;
   }
 
-  @Override
-  public Object visitVarInitialized(VarInitialized ast, Object o) {
-    VarDeclaration vd = new VarDeclaration(ast.I, ast.T, ast.position);
-    Integer extraSize = (Integer) vd.visit(this, o);
-    SimpleVname sv = new SimpleVname(vd.I, ast.position);
-    sv.visit(this, o);
-    AssignCommand assignCommand = new AssignCommand(sv, ast.E, ast.position);
-    assignCommand.visit(this, o);
-    return extraSize;
-  }
+    @Override
+    public Object visitVarInitialized(VarInitialized ast, Object o) {
+        Frame frame = (Frame) o;
+        int extraSize;
+        extraSize = ((Integer) ast.T.visit(this, null)).intValue();
+        emit(Machine.PUSHop, 0, 0, extraSize);
+        ast.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
+        writeTableDetails(ast);
+        Integer valSize = (Integer) ast.E.visit(this, frame);
+        SimpleVname sv = new SimpleVname(ast.I, ast.I.position);
+        encodeStore(sv, frame, valSize);
+        return new Integer(extraSize);
+    }
+
+    @Override
+    public Object visitArrayStatic(ArrayTypeDenoterStatic ast, Object o) {
+        int typeSize;
+        if (ast.entity == null) {
+            int elemSize = ((Integer) ast.T.visit(this, null)).intValue();
+            int campos = Integer.parseInt(ast.IL2.spelling) - Integer.parseInt(ast.IL.spelling) + 1;
+            typeSize = campos * elemSize;
+            ast.entity = new TypeRepresentation(typeSize);
+            writeTableDetails(ast);
+        } else
+            typeSize = ast.entity.size;
+        return new Integer(typeSize);
+    }
 
   @Override
-  public Object visitArrayStatic(ArrayTypeDenoterStatic ast, Object o) {
+  public Object visitProcFuncs(ProcFuncs ast, Object o) {
     return null;
   }
 
-  @Override
-  public Object visitProcFuncs(ProcFuncs ast, Object o) { return null;
-  }
+    @Override
+    public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
+        int extra1 = (Integer) ast.D1.visit(this, o);
+        extra1 += (Integer) ast.D2.visit(this, o);
+        return extra1;
+    }
 
   @Override
-  public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
-    int extra1 = (Integer) ast.D1.visit(this, o);
-    extra1 += (Integer) ast.D2.visit(this, o);
-    return extra1;
-  }
-
-  @Override
-  public Object visitRecDeclaration(RecDeclaration ast, Object o) {return null;
+  public Object visitRecDeclaration(RecDeclaration ast, Object o) {
+    return null;
   }
 
 
@@ -743,35 +745,89 @@ public final class Encoder implements Visitor {
     return ast.I.decl.entity;
   }
 
-  public Object visitSubscriptVname(SubscriptVname ast, Object o) {
-    Frame frame = (Frame) o;
-    RuntimeEntity baseObject;
-    int elemSize, indexSize;
-
-    baseObject = (RuntimeEntity) ast.V.visit(this, frame);
-    ast.offset = ast.V.offset;
-    ast.indexed = ast.V.indexed;
-    elemSize = ((Integer) ast.type.visit(this, null)).intValue();
-    if (ast.E instanceof IntegerExpression) {
-      IntegerLiteral IL = ((IntegerExpression) ast.E).IL;
-      ast.offset = ast.offset + Integer.parseInt(IL.spelling) * elemSize;
-    } else {
-      // v-name is indexed by a proper expression, not a literal
-      if (ast.indexed)
-        frame.size = frame.size + Machine.integerSize;
-      indexSize = ((Integer) ast.E.visit(this, frame)).intValue();
-      if (elemSize != 1) {
-        emit(Machine.LOADLop, 0, 0, elemSize);
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr,
-             Machine.multDisplacement);
-      }
-      if (ast.indexed)
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-      else
-        ast.indexed = true;
+    public Object visitSubscriptVname(SubscriptVname ast, Object o) {
+        Frame frame = (Frame) o;
+        RuntimeEntity baseObject;
+        int elemSize, indexSize;
+        baseObject = (RuntimeEntity) ast.V.visit(this, frame);
+        ast.offset = ast.V.offset;
+        ast.indexed = ast.V.indexed;
+        if (ast.E instanceof IntegerExpression) {
+            IntegerLiteral IL = ((IntegerExpression) ast.E).IL;
+            //TODO Codigo para chequear indice
+            int il1, il2, index;
+            if (ast.V.type instanceof ArrayTypeDenoterStatic) {
+                il1 = Integer.parseInt(((ArrayTypeDenoterStatic) ast.V.type).IL.spelling);
+                il2 = Integer.parseInt(((ArrayTypeDenoterStatic) ast.V.type).IL2.spelling);
+                index = Integer.parseInt(IL.spelling);
+                emit(Machine.LOADLop, 0, 0, il2);
+                emit(Machine.LOADLop, 0, 0, index);
+                emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.indexcheck);
+                emit(Machine.LOADLop, 0, 0, index);
+                emit(Machine.LOADLop, 0, 0, il1);
+                emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.indexcheck);
+                elemSize = ((Integer) ast.type.visit(this, null)).intValue();
+                int indice = Integer.parseInt(IL.spelling) - il1;
+                IL.spelling = Integer.toString(indice);
+                ast.offset = ast.offset + indice * elemSize;
+            }
+            else if (ast.V.type instanceof ArrayTypeDenoter) {
+                il1 = Integer.parseInt(((ArrayTypeDenoter) ast.V.type).IL.spelling);
+                index = Integer.parseInt(IL.spelling);
+                emit(Machine.LOADLop, 0, 0, index);
+                emit(Machine.LOADLop, 0, 0, 0);
+                emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.indexcheck);
+                emit(Machine.LOADLop, 0, 0, il1 - 1);
+                emit(Machine.LOADLop, 0, 0, index);
+                emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.indexcheck);
+                elemSize = ((Integer) ast.type.visit(this, null)).intValue();
+                ast.offset = ast.offset + Integer.parseInt(IL.spelling) * elemSize;
+            }
+        }
+        else {
+            if (ast.E instanceof VnameExpression) {
+                int il1, il2;
+                if (ast.V.type instanceof ArrayTypeDenoterStatic) {
+                    il1 = Integer.parseInt(((ArrayTypeDenoterStatic) ast.V.type).IL.spelling);
+                    il2 = Integer.parseInt(((ArrayTypeDenoterStatic) ast.V.type).IL2.spelling);
+                    emit(Machine.LOADLop, 1, 0, il2);
+                    encodeFetch(((VnameExpression) ast.E).V, frame, (Integer) ast.E.type.visit(this, null));
+                    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.indexcheck);
+                    encodeFetch(((VnameExpression) ast.E).V, frame, (Integer) ast.E.type.visit(this, null));
+                    emit(Machine.LOADLop, 0, 0, il1);
+                    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.indexcheck);
+                } else if (ast.V.type instanceof ArrayTypeDenoter) {
+                    il1 = Integer.parseInt(((ArrayTypeDenoter) ast.V.type).IL.spelling);
+                    //Sacar el indice
+                    encodeFetch(((VnameExpression) ast.E).V, frame, (Integer) ast.E.type.visit(this, null));
+                    emit(Machine.LOADLop, 0, 0, 0);
+                    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.indexcheck);
+                    emit(Machine.LOADLop, 0, 0, il1 - 1);
+                    encodeFetch(((VnameExpression) ast.E).V, frame, (Integer) ast.E.type.visit(this, null));
+                    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.indexcheck);
+                }
+            }
+            elemSize = ((Integer) ast.type.visit(this, null)).intValue();
+            // v-name is indexed by a proper expression, not a literal
+            if (ast.indexed)
+                frame.size = frame.size + Machine.integerSize;
+            indexSize = ((Integer) ast.E.visit(this, frame)).intValue();
+            if(ast.V.type instanceof ArrayTypeDenoterStatic){
+              emit(Machine.LOADLop, 0, 0, Integer.parseInt(((ArrayTypeDenoterStatic) ast.V.type).IL.spelling));
+              emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.subDisplacement);
+            }
+            if (elemSize != 1) {
+                emit(Machine.LOADLop, 0, 0, elemSize);
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr,
+                        Machine.multDisplacement);
+            }
+            if (ast.indexed)
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+            else
+                ast.indexed = true;
+        }
+        return baseObject;
     }
-    return baseObject;
-  }
 
 
   // Programs
@@ -828,36 +884,37 @@ public final class Encoder implements Visitor {
     writeTableDetails(routineDeclaration);
   }
 
-  private final void elaborateStdEnvironment() {
-    tableDetailsReqd = false;
-    elaborateStdConst(StdEnvironment.falseDecl, Machine.falseRep);
-    elaborateStdConst(StdEnvironment.trueDecl, Machine.trueRep);
-    elaborateStdPrimRoutine(StdEnvironment.notDecl, Machine.notDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.andDecl, Machine.andDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.orDecl, Machine.orDisplacement);
-    elaborateStdConst(StdEnvironment.maxintDecl, Machine.maxintRep);
-    elaborateStdPrimRoutine(StdEnvironment.addDecl, Machine.addDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.subtractDecl, Machine.subDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.multiplyDecl, Machine.multDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.divideDecl, Machine.divDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.moduloDecl, Machine.modDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.lessDecl, Machine.ltDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.notgreaterDecl, Machine.leDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.greaterDecl, Machine.gtDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.notlessDecl, Machine.geDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.chrDecl, Machine.idDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.ordDecl, Machine.idDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.eolDecl, Machine.eolDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.eofDecl, Machine.eofDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.getDecl, Machine.getDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.putDecl, Machine.putDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.getintDecl, Machine.getintDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.putintDecl, Machine.putintDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.geteolDecl, Machine.geteolDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.puteolDecl, Machine.puteolDisplacement);
-    elaborateStdEqRoutine(StdEnvironment.equalDecl, Machine.eqDisplacement);
-    elaborateStdEqRoutine(StdEnvironment.unequalDecl, Machine.neDisplacement);
-  }
+    private final void elaborateStdEnvironment() {
+        tableDetailsReqd = false;
+        elaborateStdConst(StdEnvironment.falseDecl, Machine.falseRep);
+        elaborateStdConst(StdEnvironment.trueDecl, Machine.trueRep);
+        elaborateStdPrimRoutine(StdEnvironment.notDecl, Machine.notDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.andDecl, Machine.andDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.orDecl, Machine.orDisplacement);
+        elaborateStdConst(StdEnvironment.maxintDecl, Machine.maxintRep);
+        elaborateStdPrimRoutine(StdEnvironment.addDecl, Machine.addDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.subtractDecl, Machine.subDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.multiplyDecl, Machine.multDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.divideDecl, Machine.divDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.moduloDecl, Machine.modDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.lessDecl, Machine.ltDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.notgreaterDecl, Machine.leDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.greaterDecl, Machine.gtDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.notlessDecl, Machine.geDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.chrDecl, Machine.idDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.ordDecl, Machine.idDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.eolDecl, Machine.eolDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.eofDecl, Machine.eofDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.getDecl, Machine.getDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.putDecl, Machine.putDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.getintDecl, Machine.getintDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.putintDecl, Machine.putintDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.geteolDecl, Machine.geteolDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.puteolDecl, Machine.puteolDisplacement);
+        elaborateStdPrimRoutine(StdEnvironment.indexcheck, Machine.indexcheck);
+        elaborateStdEqRoutine(StdEnvironment.equalDecl, Machine.eqDisplacement);
+        elaborateStdEqRoutine(StdEnvironment.unequalDecl, Machine.neDisplacement);
+    }
 
   // Saves the object program in the named file.
 
@@ -1000,20 +1057,18 @@ public final class Encoder implements Visitor {
       // presumably offset = 0 and indexed = false
       int value = ((KnownValue) baseObject).value;
       emit(Machine.LOADLop, 0, 0, value);
-    } else if ((baseObject instanceof UnknownValue) ||
-               (baseObject instanceof KnownAddress)) {
-      ObjectAddress address = (baseObject instanceof UnknownValue) ?
-                              ((UnknownValue) baseObject).address :
-                              ((KnownAddress) baseObject).address;
+    }
+    else if ((baseObject instanceof UnknownValue) || (baseObject instanceof KnownAddress)) {
+      ObjectAddress address = (baseObject instanceof UnknownValue) ? ((UnknownValue) baseObject).address : ((KnownAddress) baseObject).address;
       if (V.indexed) {
-        emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level),
-             address.displacement + V.offset);
+        emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level), address.displacement + V.offset);
         emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
         emit(Machine.LOADIop, valSize, 0, 0);
-      } else
-        emit(Machine.LOADop, valSize, displayRegister(frame.level,
-	     address.level), address.displacement + V.offset);
-    } else if (baseObject instanceof UnknownAddress) {
+      }
+      else
+        emit(Machine.LOADop, valSize, displayRegister(frame.level, address.level), address.displacement + V.offset);
+    }
+    else if (baseObject instanceof UnknownAddress) {
       ObjectAddress address = ((UnknownAddress) baseObject).address;
       emit(Machine.LOADop, Machine.addressSize, displayRegister(frame.level,
            address.level), address.displacement);

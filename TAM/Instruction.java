@@ -61,4 +61,12 @@ public class Instruction {
       return null;
     }
   }
+
+  @Override
+  public String toString(){
+    return "Op Code: " + Integer.toString(op) +
+            " RegisterNumber: "  + Integer.toString(r) +
+            " Lenght: " + Integer.toString(n) +
+            " Operand: " + Integer.toString(d);
+  }
 }

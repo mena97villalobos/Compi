@@ -51,7 +51,6 @@ public final class Checker implements Visitor {
     }
     idTable.openScope();
 
-
     idTable.enter(ast.I.spelling, new VarDeclaration(ast.I, e1Type, ast.position));
     ast.I.visit(this, null); //TODO SWAP DE 55 Y 56
     int revision = ast.revisarCommand(ast.C);
@@ -90,7 +89,7 @@ public final class Checker implements Visitor {
     ast.T = (TypeDenoter) ast.T.visit(this, null);
     if (Integer.parseInt(ast.IL.spelling) > Integer.parseInt(ast.IL2.spelling))
       reporter.reportError("Second integer must be greater than the first one","",ast.getPosition());
-    else if ((Integer.valueOf(ast.IL.spelling).intValue()) == 0)
+    else if ((Integer.valueOf(ast.IL.spelling).intValue()) == (Integer.valueOf(ast.IL2.spelling).intValue())) //Cambio Proyecto 3 el array es vacio si los dos IL son iguales
       reporter.reportError ("arrays must not be empty", "", ast.IL.position);
     return ast;
   }
@@ -845,13 +844,13 @@ public final class Checker implements Visitor {
     ast.variable = ast.V.variable;
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
     if (vType != StdEnvironment.errorType) {
-      if (! (vType instanceof ArrayTypeDenoter))
+      if (!((vType instanceof ArrayTypeDenoter) || (vType instanceof ArrayTypeDenoterStatic))) //Proyecto 3 antes no reconocia el arreglo estatico como un arreglo
         reporter.reportError ("array expected here", "", ast.V.position);
       else {
         if (! eType.equals(StdEnvironment.integerType))
           reporter.reportError ("Integer expression expected here", "",
-				ast.E.position);
-        ast.type = ((ArrayTypeDenoter) vType).T;
+                  ast.E.position);
+        ast.type = vType instanceof ArrayTypeDenoterStatic ? ((ArrayTypeDenoterStatic) vType).T : ((ArrayTypeDenoter) vType).T;
       }
     }
     return ast.type;
@@ -1056,6 +1055,14 @@ public final class Checker implements Visitor {
     StdEnvironment.puteolDecl = declareStdProc("puteol", new EmptyFormalParameterSequence(dummyPos));
     StdEnvironment.equalDecl = declareStdBinaryOp("=", StdEnvironment.anyType, StdEnvironment.anyType, StdEnvironment.booleanType);
     StdEnvironment.unequalDecl = declareStdBinaryOp("\\=", StdEnvironment.anyType, StdEnvironment.anyType, StdEnvironment.booleanType);
-
+    StdEnvironment.indexcheck = declareStdProc("indexcheck", new MultipleFormalParameterSequence(
+            new VarFormalParameter(dummyI, StdEnvironment.integerType, dummyPos),
+            new SingleFormalParameterSequence(
+                    new VarFormalParameter(dummyI, StdEnvironment.integerType, dummyPos),
+                    dummyPos
+            ),
+            dummyPos
+            )
+    );
   }
 }
