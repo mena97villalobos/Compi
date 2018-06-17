@@ -240,7 +240,6 @@ public final class Encoder implements Visitor {
     public Object visitRecDeclaration(RecDeclaration ast, Object o) {
         int jumpAddress = nextInstrAddr;
         emit(Machine.JUMPop, 0, Machine.CBr, 0);
-        ArrayList<Instruction> instructions = new ArrayList<>();
         int extrasize = (Integer) ast.D.visit(this, o);
         patch(jumpAddress, nextInstrAddr);
         for(Map.Entry<String, int[]> entry : RecDeclaration.direccionesXparsear.entrySet()){
