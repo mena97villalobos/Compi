@@ -238,10 +238,16 @@ public final class Encoder implements Visitor {
 
     @Override
     public Object visitRecDeclaration(RecDeclaration ast, Object o) {
+        //Limpiar las declaraciones de otros recs
+        RecDeclaration.direccionesDisponibles.clear();
+        RecDeclaration.direccionesDisponiblesParches.clear();
+        RecDeclaration.direccionesXparsear.clear();
+        //
         int jumpAddress = nextInstrAddr;
         emit(Machine.JUMPop, 0, Machine.CBr, 0);
         int extrasize = (Integer) ast.D.visit(this, o);
         patch(jumpAddress, nextInstrAddr);
+        //Parchear las direcciones de todas las funciones recursivas
         for(Map.Entry<String, int[]> entry : RecDeclaration.direccionesXparsear.entrySet()){
             try{
                 ObjectAddress objectAddress = RecDeclaration.direccionesDisponibles.get(entry.getKey()).address;
