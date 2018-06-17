@@ -257,6 +257,7 @@ public final class Encoder implements Visitor {
 
     @Override
     public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
+        Frame frame = (Frame) o;
         int extra1 = (Integer) ast.D1.visit(this, o);
         extra1 += (Integer) ast.D2.visit(this, o);
         return extra1;
