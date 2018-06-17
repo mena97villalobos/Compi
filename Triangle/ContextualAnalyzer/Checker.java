@@ -122,19 +122,23 @@ public final class Checker implements Visitor {
     if(procFunc instanceof ProcDeclaration){
       ProcDeclaration procDeclaration = (ProcDeclaration) procFunc;
       idTable.enter(procDeclaration.I.spelling, procDeclaration);
-
      if (procDeclaration.duplicated)
         reporter.reportError ("proc identifier \"%\" already declared",
                 procDeclaration.I.spelling, procDeclaration.position);
+     idTable.openScope();
       procDeclaration.FPS.visit(this, true);
-    } else {
+      idTable.closeScope();
+    }
+    else {
       FuncDeclaration funcDeclaration = (FuncDeclaration) procFunc;
       idTable.enter(funcDeclaration.I.spelling, funcDeclaration);
 
       if (funcDeclaration.duplicated)
         reporter.reportError ("func identifier \"%\" already declared",
                 funcDeclaration.I.spelling, funcDeclaration.position);
+      idTable.openScope();
       funcDeclaration.FPS.visit(this, true);
+      idTable.closeScope();
       funcDeclaration.T = (TypeDenoter) funcDeclaration.T.visit(this, null);
     }
   }
