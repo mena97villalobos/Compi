@@ -14,168 +14,175 @@
 
 package Triangle.CodeGenerator;
 
-import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 import TAM.Instruction;
 import TAM.Machine;
 import Triangle.AbstractSyntaxTrees.*;
 import Triangle.ErrorReporter;
 import Triangle.StdEnvironment;
+import Triangle.SyntacticAnalyzer.SourcePosition;
+import jdk.nashorn.internal.parser.Token;
 
-import javax.crypto.Mac;
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
 
 public final class Encoder implements Visitor {
 
 
-  // Commands
-  public Object visitAssignCommand(AssignCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    Integer valSize = (Integer) ast.E.visit(this, frame);
-    encodeStore(ast.V, new Frame (frame, valSize.intValue()),
-            valSize.intValue());
-    return null;
-  }
+    // Commands
+    public Object visitAssignCommand(AssignCommand ast, Object o) {
+        Frame frame = (Frame) o;
+        Integer valSize = (Integer) ast.E.visit(this, frame);
+        encodeStore(ast.V, new Frame(frame, valSize.intValue()),
+                valSize.intValue());
+        return null;
+    }
 
-  public Object visitCallCommand(CallCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    Integer argsSize = (Integer) ast.APS.visit(this, frame);
-    ast.I.visit(this, new Frame(frame.level, argsSize));
-    return null;
-  }
+    public Object visitCallCommand(CallCommand ast, Object o) {
+        Frame frame = (Frame) o;
+        Integer argsSize = (Integer) ast.APS.visit(this, frame);
+        ast.I.visit(this, new Frame(frame.level, argsSize));
+        return null;
+    }
 
-  public Object visitEmptyCommand(EmptyCommand ast, Object o) {
-    return null;
-  }
+    public Object visitEmptyCommand(EmptyCommand ast, Object o) {
+        return null;
+    }
 
-  public Object visitIfCommand(IfCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    int jumpifAddr, jumpAddr;
-    Integer valSize = (Integer) ast.E.visit(this, frame);
-    jumpifAddr = nextInstrAddr;
-    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, 0);
-    ast.C1.visit(this, frame);
-    jumpAddr = nextInstrAddr;
-    emit(Machine.JUMPop, 0, Machine.CBr, 0);
-    patch(jumpifAddr, nextInstrAddr);
-    ast.C2.visit(this, frame);
-    patch(jumpAddr, nextInstrAddr);
-    return null;
-  }
+    public Object visitIfCommand(IfCommand ast, Object o) {
+        Frame frame = (Frame) o;
+        int jumpifAddr, jumpAddr;
+        Integer valSize = (Integer) ast.E.visit(this, frame);
+        jumpifAddr = nextInstrAddr;
+        emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, 0);
+        ast.C1.visit(this, frame);
+        jumpAddr = nextInstrAddr;
+        emit(Machine.JUMPop, 0, Machine.CBr, 0);
+        patch(jumpifAddr, nextInstrAddr);
+        ast.C2.visit(this, frame);
+        patch(jumpAddr, nextInstrAddr);
+        return null;
+    }
 
-  public Object visitLetCommand(LetCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    int extraSize = ((Integer) ast.D.visit(this, frame)).intValue();
-    ast.C.visit(this, new Frame(frame, extraSize));
-    if (extraSize > 0)
-      emit(Machine.POPop, 0, 0, extraSize);
-    return null;
-  }
+    public Object visitLetCommand(LetCommand ast, Object o) {
+        Frame frame = (Frame) o;
+        int extraSize = ((Integer) ast.D.visit(this, frame)).intValue();
+        ast.C.visit(this, new Frame(frame, extraSize));
+        if (extraSize > 0)
+            emit(Machine.POPop, 0, 0, extraSize);
+        return null;
+    }
 
-  public Object visitSequentialCommand(SequentialCommand ast, Object o) {
-    ast.C1.visit(this, o);
-    ast.C2.visit(this, o);
-    return null;
-  }
+    public Object visitSequentialCommand(SequentialCommand ast, Object o) {
+        ast.C1.visit(this, o);
+        ast.C2.visit(this, o);
+        return null;
+    }
 
-  public Object visitWhileCommand(WhileCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    int jumpAddr, loopAddr;
-    jumpAddr = nextInstrAddr;
-    emit(Machine.JUMPop, 0, Machine.CBr, 0);
-    loopAddr = nextInstrAddr;
-    ast.C.visit(this, frame);
-    patch(jumpAddr, nextInstrAddr);
-    ast.E.visit(this, frame);
-    emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, loopAddr);
-    return null;
-  }
+    public Object visitWhileCommand(WhileCommand ast, Object o) {
+        Frame frame = (Frame) o;
+        int jumpAddr, loopAddr;
+        jumpAddr = nextInstrAddr;
+        emit(Machine.JUMPop, 0, Machine.CBr, 0);
+        loopAddr = nextInstrAddr;
+        ast.C.visit(this, frame);
+        patch(jumpAddr, nextInstrAddr);
+        ast.E.visit(this, frame);
+        emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, loopAddr);
+        return null;
+    }
 
-  //TODO Funciones por implementar que deja el Proyecto 1 de linea 96 a la 143
-  @Override
-  public Object visitDoWhileCommand(DoWhileCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    int loopAddr;
-    loopAddr = nextInstrAddr; //Almacena la direccion de codigo donde inicia el comando para poder regresar en el do while
-    ast.C.visit(this, frame);
-    ast.E.visit(this, frame);
-    emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, loopAddr);
-    return null;
-  }
+    //TODO Funciones por implementar que deja el Proyecto 1 de linea 96 a la 143
+    @Override
+    public Object visitDoWhileCommand(DoWhileCommand ast, Object o) {
+        Frame frame = (Frame) o;
+        int loopAddr;
+        loopAddr = nextInstrAddr; //Almacena la direccion de codigo donde inicia el comando para poder regresar en el do while
+        ast.C.visit(this, frame);
+        ast.E.visit(this, frame);
+        emit(Machine.JUMPIFop, Machine.trueRep, Machine.CBr, loopAddr);
+        return null;
+    }
 
-  @Override
-  public Object visitDoUntilCommand(DoUntilCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    int loopAddr;
-    loopAddr = nextInstrAddr; //Almacena la direccion de codigo donde inicia el comando para poder regresar en el do while
-    ast.C.visit(this, frame);
-    ast.E.visit(this, frame);
-    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr); // Si se asume que el until itera hasta que E sea verdadera
-    return null;
-  }
+    @Override
+    public Object visitDoUntilCommand(DoUntilCommand ast, Object o) {
+        Frame frame = (Frame) o;
+        int loopAddr;
+        loopAddr = nextInstrAddr; //Almacena la direccion de codigo donde inicia el comando para poder regresar en el do while
+        ast.C.visit(this, frame);
+        ast.E.visit(this, frame);
+        emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr); // Si se asume que el until itera hasta que E sea verdadera
+        return null;
+    }
 
-  @Override
-  public Object visitUntilCommand(UntilCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    int jumpAddr, loopAddr;
-    jumpAddr = nextInstrAddr;
-    emit(Machine.JUMPop, 0, Machine.CBr, 0);
-    loopAddr = nextInstrAddr;
-    ast.C.visit(this, frame);
-    patch(jumpAddr, nextInstrAddr);
-    ast.E.visit(this, frame);
-    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr); // Si se asume que el until itera hasta que E sea verdadera
-    return null;
-  }
+    @Override
+    public Object visitUntilCommand(UntilCommand ast, Object o) {
+        Frame frame = (Frame) o;
+        int jumpAddr, loopAddr;
+        jumpAddr = nextInstrAddr;
+        emit(Machine.JUMPop, 0, Machine.CBr, 0);
+        loopAddr = nextInstrAddr;
+        ast.C.visit(this, frame);
+        patch(jumpAddr, nextInstrAddr);
+        ast.E.visit(this, frame);
+        emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr); // Si se asume que el until itera hasta que E sea verdadera
+        return null;
+    }
 
-  @Override
-  public Object visitElsifCommand(ElsifCommand ast, Object o) {
-    Frame frame = (Frame) o;
-    int jumpElsifAddr, jumpAddr;
-    Integer valSize = (Integer) ast.E.visit(this, frame);
-    jumpElsifAddr = nextInstrAddr;
-    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, 0); // Por parchear 1 Si es falso salte a tal direccion
-    ast.C1.visit(this, frame);
-    jumpAddr = nextInstrAddr;
-    emit(Machine.JUMPop, 0, Machine.CBr, 0); // Si ejecuta el elsif salte al final del comando
-    patch(jumpElsifAddr, nextInstrAddr); // Parchea 1
-    ast.C2.visit(this, frame);
-    patch(jumpAddr, nextInstrAddr);
-    return null;
-  }
+    @Override
+    public Object visitElsifCommand(ElsifCommand ast, Object o) {
+        Frame frame = (Frame) o;
+        int jumpElsifAddr, jumpAddr;
+        Integer valSize = (Integer) ast.E.visit(this, frame);
+        jumpElsifAddr = nextInstrAddr;
+        emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, 0); // Por parchear 1 Si es falso salte a tal direccion
+        ast.C1.visit(this, frame);
+        jumpAddr = nextInstrAddr;
+        emit(Machine.JUMPop, 0, Machine.CBr, 0); // Si ejecuta el elsif salte al final del comando
+        patch(jumpElsifAddr, nextInstrAddr); // Parchea 1
+        ast.C2.visit(this, frame);
+        patch(jumpAddr, nextInstrAddr);
+        return null;
+    }
 
-  @Override
-  public Object visitForCommand(ForCommand ast, Object o) {
-    //"loop" "for" Identifier ":=" Expression "to" Expression "do" Command "end"
-    int jumpAddr, loopAddr;
-    Frame frame = (Frame) o;
-    SimpleVname sv = new SimpleVname(ast.I, ast.I.position);
-    emit(Machine.PUSHop, 0, 0, 1);
-    sv.I.decl.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
-    ast.E1.visit(this, frame); //Obtener el valor de la variable de control
-    encodeStore(sv, frame, Machine.integerSize);
-    ast.E2.visit(this, frame); // Obtener el valor hasta el que hay que llegar
-    jumpAddr = nextInstrAddr;
-    emit(Machine.JUMPop, 0, Machine.CBr, 0);
-    loopAddr = nextInstrAddr;
-    ast.C.visit(this, frame);
-    encodeFetch(sv, frame, Machine.integerSize);
-    emit(Machine.CALLop, 0, Machine.PBr, Machine.succDisplacement);
-    encodeStore(sv, frame, Machine.integerSize);
-    patch(jumpAddr, nextInstrAddr);
-    encodeFetch(sv, frame, Machine.integerSize); //Jalar variable de control
-    emit(Machine.LOADop, 1, Machine.STr, -2);
-    emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.gtDisplacement);
-    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);
-    emit(Machine.POPop, 0, 0, 2);
-    return null;
-  }
+    @Override
+    public Object visitForCommand(ForCommand ast, Object o) {
+        //"loop" "for" Identifier ":=" Expression "to" Expression "do" Command "end"
+        SourcePosition dummyPos = new SourcePosition();
+        Identifier dummyI = new Identifier("", dummyPos);
+        int jumpAddr, loopAddr;
+        Frame frame = (Frame) o;
+        emit(Machine.PUSHop, 0, 0, 2);
+        SimpleVname expr1 = new SimpleVname(ast.I, ast.I.position);
+        SimpleVname expr2 = new SimpleVname(dummyI, dummyPos);
+        dummyI.decl = ast.E2;
+        expr1.I.decl.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
+        frame.size += 1;
+        expr2.I.decl.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
+        frame.size += 1;
+        ast.E1.visit(this, frame); //Obtener el valor de la variable de control
+        encodeStore(expr1, frame, Machine.integerSize);
+        ast.E2.visit(this, frame); // Obtener el valor hasta el que hay que llegar
+        encodeStore(expr2, frame, Machine.integerSize);
+        jumpAddr = nextInstrAddr;
+        emit(Machine.JUMPop, 0, Machine.CBr, 0);
+        loopAddr = nextInstrAddr;
+        ast.C.visit(this, frame);
+        encodeFetch(expr1, frame, Machine.integerSize);
+        emit(Machine.CALLop, 0, Machine.PBr, Machine.succDisplacement);
+        encodeStore(expr1, frame, Machine.integerSize);
+        patch(jumpAddr, nextInstrAddr);
+        encodeFetch(expr1, frame, Machine.integerSize); //Jalar variable de control
+        encodeFetch(expr2, frame, Machine.integerSize);
+        emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.gtDisplacement);
+        emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, loopAddr);
+        emit(Machine.POPop, 0, 0, 2);
+        frame.size -= 2;
+        return null;
+    }
 
     @Override
     public Object visitVarInitialized(VarInitialized ast, Object o) {
@@ -205,10 +212,49 @@ public final class Encoder implements Visitor {
         return new Integer(typeSize);
     }
 
-  @Override
-  public Object visitProcFuncs(ProcFuncs ast, Object o) {
-    return null;
-  }
+    @Override
+    public Object visitProcFuncs(ProcFuncs ast, Object o) {
+        guardarIdentificadores(ast);
+        int extrasize;
+        extrasize = (Integer) ast.D1.visit(this, o);
+        extrasize += (Integer) ast.D2.visit(this, o);
+        return extrasize;
+    }
+
+    private void guardarIdentificadores(ProcFuncs ast){
+        if(ast.D1 instanceof ProcDeclaration || ast.D1 instanceof FuncDeclaration){
+            Identifier i = ast.D1 instanceof ProcDeclaration ? ((ProcDeclaration) ast.D1).I : ((FuncDeclaration) ast.D1).I;
+            i.entity = new RecProcFunc();
+        }
+        if(ast.D2 instanceof  ProcDeclaration || ast.D2 instanceof FuncDeclaration){
+            Identifier i = ast.D2 instanceof ProcDeclaration ? ((ProcDeclaration) ast.D2).I : ((FuncDeclaration) ast.D2).I;
+            i.entity = new RecProcFunc();
+        }
+        if(ast.D1 instanceof ProcFuncs)
+            guardarIdentificadores((ProcFuncs) ast.D1);
+        if(ast.D2 instanceof ProcFuncs)
+            guardarIdentificadores((ProcFuncs) ast.D2);
+    }
+
+    @Override
+    public Object visitRecDeclaration(RecDeclaration ast, Object o) {
+        int jumpAddress = nextInstrAddr;
+        emit(Machine.JUMPop, 0, Machine.CBr, 0);
+        ArrayList<Instruction> instructions = new ArrayList<>();
+        int extrasize = (Integer) ast.D.visit(this, o);
+        patch(jumpAddress, nextInstrAddr);
+        for(Map.Entry<String, int[]> entry : RecDeclaration.direccionesXparsear.entrySet()){
+            try{
+                ObjectAddress objectAddress = RecDeclaration.direccionesDisponibles.get(entry.getKey()).address;
+                int parche = RecDeclaration.direccionesDisponiblesParches.get(entry.getKey());
+                patch(entry.getValue()[0], parche, displayRegister(entry.getValue()[1], objectAddress.level));
+            }
+            catch (Exception e){
+                reporter.reportError("Identifier not declared", entry.getKey(), ast.position);
+            }
+        }
+        return extrasize;
+    }
 
     @Override
     public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
@@ -217,533 +263,535 @@ public final class Encoder implements Visitor {
         return extra1;
     }
 
-  @Override
-  public Object visitRecDeclaration(RecDeclaration ast, Object o) {
-    return null;
-  }
 
-
-  // Expressions
-  public Object visitArrayExpression(ArrayExpression ast, Object o) {
-    ast.type.visit(this, null);
-    return ast.AA.visit(this, o);
-  }
-
-  public Object visitBinaryExpression(BinaryExpression ast, Object o) {
-    Frame frame = (Frame) o;
-    Integer valSize = (Integer) ast.type.visit(this, null);
-    int valSize1 = ((Integer) ast.E1.visit(this, frame)).intValue();
-    Frame frame1 = new Frame(frame, valSize1);
-    int valSize2 = ((Integer) ast.E2.visit(this, frame1)).intValue();
-    Frame frame2 = new Frame(frame.level, valSize1 + valSize2);
-    ast.O.visit(this, frame2);
-    return valSize;
-  }
-
-  public Object visitCallExpression(CallExpression ast, Object o) {
-    Frame frame = (Frame) o;
-    Integer valSize = (Integer) ast.type.visit(this, null);
-    Integer argsSize = (Integer) ast.APS.visit(this, frame);
-    ast.I.visit(this, new Frame(frame.level, argsSize));
-    return valSize;
-  }
-
-  public Object visitCharacterExpression(CharacterExpression ast,
-						Object o) {
-    Frame frame = (Frame) o;
-    Integer valSize = (Integer) ast.type.visit(this, null);
-    emit(Machine.LOADLop, 0, 0, ast.CL.spelling.charAt(1));
-    return valSize;
-  }
-
-  public Object visitEmptyExpression(EmptyExpression ast, Object o) {
-    return new Integer(0);
-  }
-
-  public Object visitIfExpression(IfExpression ast, Object o) {
-    Frame frame = (Frame) o;
-    Integer valSize;
-    int jumpifAddr, jumpAddr;
-
-    ast.type.visit(this, null);
-    ast.E1.visit(this, frame);
-    jumpifAddr = nextInstrAddr;
-    emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, 0);
-    valSize = (Integer) ast.E2.visit(this, frame);
-    jumpAddr = nextInstrAddr;
-    emit(Machine.JUMPop, 0, Machine.CBr, 0);
-    patch(jumpifAddr, nextInstrAddr);
-    valSize = (Integer) ast.E3.visit(this, frame);
-    patch(jumpAddr, nextInstrAddr);
-    return valSize;
-  }
-
-  public Object visitIntegerExpression(IntegerExpression ast, Object o) {
-    Frame frame = (Frame) o;
-    Integer valSize = (Integer) ast.type.visit(this, null);
-    emit(Machine.LOADLop, 0, 0, Integer.parseInt(ast.IL.spelling));
-    return valSize;
-  }
-
-  public Object visitLetExpression(LetExpression ast, Object o) {
-    Frame frame = (Frame) o;
-    ast.type.visit(this, null);
-    int extraSize = ((Integer) ast.D.visit(this, frame)).intValue();
-    Frame frame1 = new Frame(frame, extraSize);
-    Integer valSize = (Integer) ast.E.visit(this, frame1);
-    if (extraSize > 0)
-      emit(Machine.POPop, valSize.intValue(), 0, extraSize);
-    return valSize;
-  }
-
-  public Object visitRecordExpression(RecordExpression ast, Object o){
-    ast.type.visit(this, null);
-    return ast.RA.visit(this, o);
-  }
-
-  public Object visitUnaryExpression(UnaryExpression ast, Object o) {
-    Frame frame = (Frame) o;
-    Integer valSize = (Integer) ast.type.visit(this, null);
-    ast.E.visit(this, frame);
-    ast.O.visit(this, new Frame(frame.level, valSize.intValue()));
-    return valSize;
-  }
-
-  public Object visitVnameExpression(VnameExpression ast, Object o) {
-    Frame frame = (Frame) o;
-    Integer valSize = (Integer) ast.type.visit(this, null);
-    encodeFetch(ast.V, frame, valSize.intValue());
-    return valSize;
-  }
-
-
-  // Declarations
-  public Object visitBinaryOperatorDeclaration(BinaryOperatorDeclaration ast,
-					       Object o){
-    return new Integer(0);
-  }
-
-  public Object visitConstDeclaration(ConstDeclaration ast, Object o) {
-    Frame frame = (Frame) o;
-    int extraSize = 0;
-
-    if (ast.E instanceof CharacterExpression) {
-        CharacterLiteral CL = ((CharacterExpression) ast.E).CL;
-        ast.entity = new KnownValue(Machine.characterSize,
-                                 characterValuation(CL.spelling));
-    } else if (ast.E instanceof IntegerExpression) {
-        IntegerLiteral IL = ((IntegerExpression) ast.E).IL;
-        ast.entity = new KnownValue(Machine.integerSize,
-				 Integer.parseInt(IL.spelling));
-    } else {
-      int valSize = ((Integer) ast.E.visit(this, frame)).intValue();
-      ast.entity = new UnknownValue(valSize, frame.level, frame.size);
-      extraSize = valSize;
+    // Expressions
+    public Object visitArrayExpression(ArrayExpression ast, Object o) {
+        ast.type.visit(this, null);
+        return ast.AA.visit(this, o);
     }
-    writeTableDetails(ast);
-    return new Integer(extraSize);
-  }
 
-  public Object visitFuncDeclaration(FuncDeclaration ast, Object o) {
-    Frame frame = (Frame) o;
-    int jumpAddr = nextInstrAddr;
-    int argsSize = 0, valSize = 0;
-
-    emit(Machine.JUMPop, 0, Machine.CBr, 0);
-    ast.entity = new KnownRoutine(Machine.closureSize, frame.level, nextInstrAddr);
-    writeTableDetails(ast);
-    if (frame.level == Machine.maxRoutineLevel)
-      reporter.reportRestriction("can't nest routines more than 7 deep");
-    else {
-      Frame frame1 = new Frame(frame.level + 1, 0);
-      argsSize = ((Integer) ast.FPS.visit(this, frame1)).intValue();
-      Frame frame2 = new Frame(frame.level + 1, Machine.linkDataSize);
-      valSize = ((Integer) ast.E.visit(this, frame2)).intValue();
+    public Object visitBinaryExpression(BinaryExpression ast, Object o) {
+        Frame frame = (Frame) o;
+        Integer valSize = (Integer) ast.type.visit(this, null);
+        int valSize1 = ((Integer) ast.E1.visit(this, frame)).intValue();
+        Frame frame1 = new Frame(frame, valSize1);
+        int valSize2 = ((Integer) ast.E2.visit(this, frame1)).intValue();
+        Frame frame2 = new Frame(frame.level, valSize1 + valSize2);
+        ast.O.visit(this, frame2);
+        return valSize;
     }
-    emit(Machine.RETURNop, valSize, 0, argsSize);
-    patch(jumpAddr, nextInstrAddr);
-    return new Integer(0);
-  }
 
-  public Object visitProcDeclaration(ProcDeclaration ast, Object o) {
-    Frame frame = (Frame) o;
-    int jumpAddr = nextInstrAddr;
-    int argsSize = 0;
-
-    emit(Machine.JUMPop, 0, Machine.CBr, 0);
-    ast.entity = new KnownRoutine (Machine.closureSize, frame.level,
-                                nextInstrAddr);
-    writeTableDetails(ast);
-    if (frame.level == Machine.maxRoutineLevel)
-      reporter.reportRestriction("can't nest routines so deeply");
-    else {
-      Frame frame1 = new Frame(frame.level + 1, 0);
-      argsSize = ((Integer) ast.FPS.visit(this, frame1)).intValue();
-      Frame frame2 = new Frame(frame.level + 1, Machine.linkDataSize);
-      ast.C.visit(this, frame2);
+    public Object visitCallExpression(CallExpression ast, Object o) {
+        Frame frame = (Frame) o;
+        Integer valSize = (Integer) ast.type.visit(this, null);
+        Integer argsSize = (Integer) ast.APS.visit(this, frame);
+        ast.I.visit(this, new Frame(frame.level, argsSize));
+        return valSize;
     }
-    emit(Machine.RETURNop, 0, 0, argsSize);
-    patch(jumpAddr, nextInstrAddr);
-    return new Integer(0);
-  }
 
-  public Object visitSequentialDeclaration(SequentialDeclaration ast, Object o) {
-    Frame frame = (Frame) o;
-    int extraSize1, extraSize2;
-
-    extraSize1 = ((Integer) ast.D1.visit(this, frame)).intValue();
-    Frame frame1 = new Frame (frame, extraSize1);
-    extraSize2 = ((Integer) ast.D2.visit(this, frame1)).intValue();
-    return new Integer(extraSize1 + extraSize2);
-  }
-
-  public Object visitTypeDeclaration(TypeDeclaration ast, Object o) {
-    // just to ensure the type's representation is decided
-    ast.T.visit(this, null);
-    return new Integer(0);
-  }
-
-  public Object visitUnaryOperatorDeclaration(UnaryOperatorDeclaration ast,
-					      Object o) {
-    return new Integer(0);
-  }
-
-  public Object visitVarDeclaration(VarDeclaration ast, Object o) {
-    Frame frame = (Frame) o;
-    int extraSize;
-
-    extraSize = ((Integer) ast.T.visit(this, null)).intValue();
-    emit(Machine.PUSHop, 0, 0, extraSize);
-    ast.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
-    writeTableDetails(ast);
-    return new Integer(extraSize);
-  }
-
-  // Array Aggregates
-  public Object visitMultipleArrayAggregate(MultipleArrayAggregate ast,
-					    Object o) {
-    Frame frame = (Frame) o;
-    int elemSize = ((Integer) ast.E.visit(this, frame)).intValue();
-    Frame frame1 = new Frame(frame, elemSize);
-    int arraySize = ((Integer) ast.AA.visit(this, frame1)).intValue();
-    return new Integer(elemSize + arraySize);
-  }
-
-  public Object visitSingleArrayAggregate(SingleArrayAggregate ast, Object o) {
-    return ast.E.visit(this, o);
-  }
-
-
-  // Record Aggregates
-  public Object visitMultipleRecordAggregate(MultipleRecordAggregate ast,
-					     Object o) {
-    Frame frame = (Frame) o;
-    int fieldSize = ((Integer) ast.E.visit(this, frame)).intValue();
-    Frame frame1 = new Frame (frame, fieldSize);
-    int recordSize = ((Integer) ast.RA.visit(this, frame1)).intValue();
-    return new Integer(fieldSize + recordSize);
-  }
-
-  public Object visitSingleRecordAggregate(SingleRecordAggregate ast,
-					   Object o) {
-    return ast.E.visit(this, o);
-  }
-
-
-  // Formal Parameters
-  public Object visitConstFormalParameter(ConstFormalParameter ast, Object o) {
-    Frame frame = (Frame) o;
-    int valSize = ((Integer) ast.T.visit(this, null)).intValue();
-    ast.entity = new UnknownValue (valSize, frame.level, -frame.size - valSize);
-    writeTableDetails(ast);
-    return new Integer(valSize);
-  }
-
-  public Object visitFuncFormalParameter(FuncFormalParameter ast, Object o) {
-    Frame frame = (Frame) o;
-    int argsSize = Machine.closureSize;
-    ast.entity = new UnknownRoutine (Machine.closureSize, frame.level,
-				  -frame.size - argsSize);
-    writeTableDetails(ast);
-    return new Integer(argsSize);
-  }
-
-  public Object visitProcFormalParameter(ProcFormalParameter ast, Object o) {
-    Frame frame = (Frame) o;
-    int argsSize = Machine.closureSize;
-    ast.entity = new UnknownRoutine (Machine.closureSize, frame.level,
-				  -frame.size - argsSize);
-    writeTableDetails(ast);
-    return new Integer(argsSize);
-  }
-
-  public Object visitVarFormalParameter(VarFormalParameter ast, Object o) {
-    Frame frame = (Frame) o;
-    ast.T.visit(this, null);
-    ast.entity = new UnknownAddress (Machine.addressSize, frame.level,
-				  -frame.size - Machine.addressSize);
-    writeTableDetails(ast);
-    return new Integer(Machine.addressSize);
-  }
-
-
-  public Object visitEmptyFormalParameterSequence(
-	 EmptyFormalParameterSequence ast, Object o) {
-    return new Integer(0);
-  }
-
-  public Object visitMultipleFormalParameterSequence(
- 	 MultipleFormalParameterSequence ast, Object o) {
-    Frame frame = (Frame) o;
-    int argsSize1 = ((Integer) ast.FPS.visit(this, frame)).intValue();
-    Frame frame1 = new Frame(frame, argsSize1);
-    int argsSize2 = ((Integer) ast.FP.visit(this, frame1)).intValue();
-    return new Integer(argsSize1 + argsSize2);
-  }
-
-  public Object visitSingleFormalParameterSequence(
-	 SingleFormalParameterSequence ast, Object o) {
-    return ast.FP.visit (this, o);
-  }
-
-
-  // Actual Parameters
-  public Object visitConstActualParameter(ConstActualParameter ast, Object o) {
-    return ast.E.visit (this, o);
-  }
-
-  public Object visitFuncActualParameter(FuncActualParameter ast, Object o) {
-    Frame frame = (Frame) o;
-    if (ast.I.decl.entity instanceof KnownRoutine) {
-      ObjectAddress address = ((KnownRoutine) ast.I.decl.entity).address;
-      // static link, code address
-      emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level), 0);
-      emit(Machine.LOADAop, 0, Machine.CBr, address.displacement);
-    } else if (ast.I.decl.entity instanceof UnknownRoutine) {
-      ObjectAddress address = ((UnknownRoutine) ast.I.decl.entity).address;
-      emit(Machine.LOADop, Machine.closureSize, displayRegister(frame.level,
-           address.level), address.displacement);
-    } else if (ast.I.decl.entity instanceof PrimitiveRoutine) {
-      int displacement = ((PrimitiveRoutine) ast.I.decl.entity).displacement;
-      // static link, code address
-      emit(Machine.LOADAop, 0, Machine.SBr, 0);
-      emit(Machine.LOADAop, 0, Machine.PBr, displacement);
+    public Object visitCharacterExpression(CharacterExpression ast,
+                                           Object o) {
+        Frame frame = (Frame) o;
+        Integer valSize = (Integer) ast.type.visit(this, null);
+        emit(Machine.LOADLop, 0, 0, ast.CL.spelling.charAt(1));
+        return valSize;
     }
-    return new Integer(Machine.closureSize);
-  }
 
-  public Object visitProcActualParameter(ProcActualParameter ast, Object o) {
-    Frame frame = (Frame) o;
-    if (ast.I.decl.entity instanceof KnownRoutine) {
-      ObjectAddress address = ((KnownRoutine) ast.I.decl.entity).address;
-      // static link, code address
-      emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level), 0);
-      emit(Machine.LOADAop, 0, Machine.CBr, address.displacement);
-    } else if (ast.I.decl.entity instanceof UnknownRoutine) {
-      ObjectAddress address = ((UnknownRoutine) ast.I.decl.entity).address;
-      emit(Machine.LOADop, Machine.closureSize, displayRegister(frame.level,
-           address.level), address.displacement);
-    } else if (ast.I.decl.entity instanceof PrimitiveRoutine) {
-      int displacement = ((PrimitiveRoutine) ast.I.decl.entity).displacement;
-      // static link, code address
-      emit(Machine.LOADAop, 0, Machine.SBr, 0);
-      emit(Machine.LOADAop, 0, Machine.PBr, displacement);
+    public Object visitEmptyExpression(EmptyExpression ast, Object o) {
+        return new Integer(0);
     }
-    return new Integer(Machine.closureSize);
-  }
 
-  public Object visitVarActualParameter(VarActualParameter ast, Object o) {
-    encodeFetchAddress(ast.V, (Frame) o);
-    return new Integer(Machine.addressSize);
-  }
+    public Object visitIfExpression(IfExpression ast, Object o) {
+        Frame frame = (Frame) o;
+        Integer valSize;
+        int jumpifAddr, jumpAddr;
 
-
-  public Object visitEmptyActualParameterSequence(
-	 EmptyActualParameterSequence ast, Object o) {
-    return new Integer(0);
-  }
-
-  public Object visitMultipleActualParameterSequence(
-	 MultipleActualParameterSequence ast, Object o) {
-    Frame frame = (Frame) o;
-    int argsSize1 = ((Integer) ast.AP.visit(this, frame)).intValue();
-    Frame frame1 = new Frame (frame, argsSize1);
-    int argsSize2 = ((Integer) ast.APS.visit(this, frame1)).intValue();
-    return new Integer(argsSize1 + argsSize2);
-  }
-
-  public Object visitSingleActualParameterSequence(
-	 SingleActualParameterSequence ast, Object o) {
-    return ast.AP.visit (this, o);
-  }
-
-
-  // Type Denoters
-  public Object visitAnyTypeDenoter(AnyTypeDenoter ast, Object o) {
-    return new Integer(0);
-  }
-
-  public Object visitArrayTypeDenoter(ArrayTypeDenoter ast, Object o) {
-    int typeSize;
-    if (ast.entity == null) {
-      int elemSize = ((Integer) ast.T.visit(this, null)).intValue();
-      typeSize = Integer.parseInt(ast.IL.spelling) * elemSize;
-      ast.entity = new TypeRepresentation(typeSize);
-      writeTableDetails(ast);
-    } else
-      typeSize = ast.entity.size;
-    return new Integer(typeSize);
-  }
-
-  public Object visitBoolTypeDenoter(BoolTypeDenoter ast, Object o) {
-    if (ast.entity == null) {
-      ast.entity = new TypeRepresentation(Machine.booleanSize);
-      writeTableDetails(ast);
+        ast.type.visit(this, null);
+        ast.E1.visit(this, frame);
+        jumpifAddr = nextInstrAddr;
+        emit(Machine.JUMPIFop, Machine.falseRep, Machine.CBr, 0);
+        valSize = (Integer) ast.E2.visit(this, frame);
+        jumpAddr = nextInstrAddr;
+        emit(Machine.JUMPop, 0, Machine.CBr, 0);
+        patch(jumpifAddr, nextInstrAddr);
+        valSize = (Integer) ast.E3.visit(this, frame);
+        patch(jumpAddr, nextInstrAddr);
+        return valSize;
     }
-    return new Integer(Machine.booleanSize);
-  }
 
-  public Object visitCharTypeDenoter(CharTypeDenoter ast, Object o) {
-    if (ast.entity == null) {
-      ast.entity = new TypeRepresentation(Machine.characterSize);
-      writeTableDetails(ast);
+    public Object visitIntegerExpression(IntegerExpression ast, Object o) {
+        Frame frame = (Frame) o;
+        Integer valSize = (Integer) ast.type.visit(this, null);
+        emit(Machine.LOADLop, 0, 0, Integer.parseInt(ast.IL.spelling));
+        return valSize;
     }
-    return new Integer(Machine.characterSize);
-  }
 
-  public Object visitErrorTypeDenoter(ErrorTypeDenoter ast, Object o) {
-    return new Integer(0);
-  }
-
-  public Object visitSimpleTypeDenoter(SimpleTypeDenoter ast,
-					   Object o) {
-    return new Integer(0);
-  }
-
-  public Object visitIntTypeDenoter(IntTypeDenoter ast, Object o) {
-    if (ast.entity == null) {
-      ast.entity = new TypeRepresentation(Machine.integerSize);
-      writeTableDetails(ast);
+    public Object visitLetExpression(LetExpression ast, Object o) {
+        Frame frame = (Frame) o;
+        ast.type.visit(this, null);
+        int extraSize = ((Integer) ast.D.visit(this, frame)).intValue();
+        Frame frame1 = new Frame(frame, extraSize);
+        Integer valSize = (Integer) ast.E.visit(this, frame1);
+        if (extraSize > 0)
+            emit(Machine.POPop, valSize.intValue(), 0, extraSize);
+        return valSize;
     }
-    return new Integer(Machine.integerSize);
-  }
 
-  public Object visitRecordTypeDenoter(RecordTypeDenoter ast, Object o) {
-    int typeSize;
-    if (ast.entity == null) {
-      typeSize = ((Integer) ast.FT.visit(this, new Integer(0))).intValue();
-      ast.entity = new TypeRepresentation(typeSize);
-      writeTableDetails(ast);
-    } else
-      typeSize = ast.entity.size;
-    return new Integer(typeSize);
-  }
-
-
-  public Object visitMultipleFieldTypeDenoter(MultipleFieldTypeDenoter ast,
-					      Object o) {
-    int offset = ((Integer) o).intValue();
-    int fieldSize;
-
-    if (ast.entity == null) {
-      fieldSize = ((Integer) ast.T.visit(this, null)).intValue();
-      ast.entity = new Field (fieldSize, offset);
-      writeTableDetails(ast);
-    } else
-      fieldSize = ast.entity.size;
-
-    Integer offset1 = new Integer(offset + fieldSize);
-    int recSize = ((Integer) ast.FT.visit(this, offset1)).intValue();
-    return new Integer(fieldSize + recSize);
-  }
-
-  public Object visitSingleFieldTypeDenoter(SingleFieldTypeDenoter ast,
-					    Object o) {
-    int offset = ((Integer) o).intValue();
-    int fieldSize;
-
-    if (ast.entity == null) {
-      fieldSize = ((Integer) ast.T.visit(this, null)).intValue();
-      ast.entity = new Field (fieldSize, offset);
-      writeTableDetails(ast);
-    } else
-      fieldSize = ast.entity.size;
-
-    return new Integer(fieldSize);
-  }
-
-
-  // Literals, Identifiers and Operators
-  public Object visitCharacterLiteral(CharacterLiteral ast, Object o) {
-    return null;
-  }
-
-  public Object visitIdentifier(Identifier ast, Object o) {
-    Frame frame = (Frame) o;
-    if (ast.decl.entity instanceof KnownRoutine) {
-      ObjectAddress address = ((KnownRoutine) ast.decl.entity).address;
-      emit(Machine.CALLop, displayRegister(frame.level, address.level),
-	   Machine.CBr, address.displacement);
-    } else if (ast.decl.entity instanceof UnknownRoutine) {
-      ObjectAddress address = ((UnknownRoutine) ast.decl.entity).address;
-      emit(Machine.LOADop, Machine.closureSize, displayRegister(frame.level,
-           address.level), address.displacement);
-      emit(Machine.CALLIop, 0, 0, 0);
-    } else if (ast.decl.entity instanceof PrimitiveRoutine) {
-      int displacement = ((PrimitiveRoutine) ast.decl.entity).displacement;
-      if (displacement != Machine.idDisplacement)
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, displacement);
-    } else if (ast.decl.entity instanceof EqualityRoutine) { // "=" or "\="
-      int displacement = ((EqualityRoutine) ast.decl.entity).displacement;
-      emit(Machine.LOADLop, 0, 0, frame.size / 2);
-      emit(Machine.CALLop, Machine.SBr, Machine.PBr, displacement);
+    public Object visitRecordExpression(RecordExpression ast, Object o) {
+        ast.type.visit(this, null);
+        return ast.RA.visit(this, o);
     }
-    return null;
-  }
 
-  public Object visitIntegerLiteral(IntegerLiteral ast, Object o) {
-    return null;
-  }
-
-  public Object visitOperator(Operator ast, Object o) {
-    Frame frame = (Frame) o;
-    if (ast.decl.entity instanceof KnownRoutine) {
-      ObjectAddress address = ((KnownRoutine) ast.decl.entity).address;
-      emit(Machine.CALLop, displayRegister (frame.level, address.level),
-	   Machine.CBr, address.displacement);
-    } else if (ast.decl.entity instanceof UnknownRoutine) {
-      ObjectAddress address = ((UnknownRoutine) ast.decl.entity).address;
-      emit(Machine.LOADop, Machine.closureSize, displayRegister(frame.level,
-           address.level), address.displacement);
-      emit(Machine.CALLIop, 0, 0, 0);
-    } else if (ast.decl.entity instanceof PrimitiveRoutine) {
-      int displacement = ((PrimitiveRoutine) ast.decl.entity).displacement;
-      if (displacement != Machine.idDisplacement)
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, displacement);
-    } else if (ast.decl.entity instanceof EqualityRoutine) { // "=" or "\="
-      int displacement = ((EqualityRoutine) ast.decl.entity).displacement;
-      emit(Machine.LOADLop, 0, 0, frame.size / 2);
-      emit(Machine.CALLop, Machine.SBr, Machine.PBr, displacement);
+    public Object visitUnaryExpression(UnaryExpression ast, Object o) {
+        Frame frame = (Frame) o;
+        Integer valSize = (Integer) ast.type.visit(this, null);
+        ast.E.visit(this, frame);
+        ast.O.visit(this, new Frame(frame.level, valSize.intValue()));
+        return valSize;
     }
-    return null;
-  }
+
+    public Object visitVnameExpression(VnameExpression ast, Object o) {
+        Frame frame = (Frame) o;
+        Integer valSize = (Integer) ast.type.visit(this, null);
+        encodeFetch(ast.V, frame, valSize.intValue());
+        return valSize;
+    }
 
 
-  // Value-or-variable names
-  public Object visitDotVname(DotVname ast, Object o) {
-    Frame frame = (Frame) o;
-    RuntimeEntity baseObject = (RuntimeEntity) ast.V.visit(this, frame);
-    ast.offset = ast.V.offset + ((Field) ast.I.decl.entity).fieldOffset;
-                   // I.decl points to the appropriate record field
-    ast.indexed = ast.V.indexed;
-    return baseObject;
-  }
+    // Declarations
+    public Object visitBinaryOperatorDeclaration(BinaryOperatorDeclaration ast,
+                                                 Object o) {
+        return new Integer(0);
+    }
 
-  public Object visitSimpleVname(SimpleVname ast, Object o) {
-    ast.offset = 0;
-    ast.indexed = false;
-    return ast.I.decl.entity;
-  }
+    public Object visitConstDeclaration(ConstDeclaration ast, Object o) {
+        Frame frame = (Frame) o;
+        int extraSize = 0;
+
+        if (ast.E instanceof CharacterExpression) {
+            CharacterLiteral CL = ((CharacterExpression) ast.E).CL;
+            ast.entity = new KnownValue(Machine.characterSize,
+                    characterValuation(CL.spelling));
+        } else if (ast.E instanceof IntegerExpression) {
+            IntegerLiteral IL = ((IntegerExpression) ast.E).IL;
+            ast.entity = new KnownValue(Machine.integerSize,
+                    Integer.parseInt(IL.spelling));
+        } else {
+            int valSize = ((Integer) ast.E.visit(this, frame)).intValue();
+            ast.entity = new UnknownValue(valSize, frame.level, frame.size);
+            extraSize = valSize;
+        }
+        writeTableDetails(ast);
+        return new Integer(extraSize);
+    }
+
+    public Object visitFuncDeclaration(FuncDeclaration ast, Object o) {
+        Frame frame = (Frame) o;
+        int jumpAddr = nextInstrAddr;
+        int argsSize = 0, valSize = 0;
+        emit(Machine.JUMPop, 0, Machine.CBr, 0);
+        ast.entity = new KnownRoutine(Machine.closureSize, frame.level, nextInstrAddr);
+        RecDeclaration.direccionesDisponibles.put(ast.I.spelling, (KnownRoutine)ast.entity);
+        RecDeclaration.direccionesDisponiblesParches.put(ast.I.spelling,nextInstrAddr);
+        writeTableDetails(ast);
+        if (frame.level == Machine.maxRoutineLevel)
+            reporter.reportRestriction("can't nest routines more than 7 deep");
+        else {
+            Frame frame1 = new Frame(frame.level + 1, 0);
+            argsSize = ((Integer) ast.FPS.visit(this, frame1)).intValue();
+            Frame frame2 = new Frame(frame.level + 1, Machine.linkDataSize);
+            valSize = ((Integer) ast.E.visit(this, frame2)).intValue();
+        }
+        emit(Machine.RETURNop, valSize, 0, argsSize);
+        patch(jumpAddr, nextInstrAddr);
+        return new Integer(0);
+    }
+
+    public Object visitProcDeclaration(ProcDeclaration ast, Object o) {
+        Frame frame = (Frame) o;
+        int jumpAddr = nextInstrAddr;
+        int argsSize = 0;
+
+        emit(Machine.JUMPop, 0, Machine.CBr, 0);
+        ast.entity = new KnownRoutine(Machine.closureSize, frame.level,
+                nextInstrAddr);
+        RecDeclaration.direccionesDisponibles.put(ast.I.spelling, (KnownRoutine)ast.entity);
+        RecDeclaration.direccionesDisponiblesParches.put(ast.I.spelling,nextInstrAddr);
+        writeTableDetails(ast);
+        if (frame.level == Machine.maxRoutineLevel)
+            reporter.reportRestriction("can't nest routines so deeply");
+        else {
+            Frame frame1 = new Frame(frame.level + 1, 0);
+            argsSize = ((Integer) ast.FPS.visit(this, frame1)).intValue();
+            Frame frame2 = new Frame(frame.level + 1, Machine.linkDataSize);
+            ast.C.visit(this, frame2);
+        }
+        emit(Machine.RETURNop, 0, 0, argsSize);
+        patch(jumpAddr, nextInstrAddr);
+        return new Integer(0);
+    }
+
+    public Object visitSequentialDeclaration(SequentialDeclaration ast, Object o) {
+        Frame frame = (Frame) o;
+        int extraSize1, extraSize2;
+
+        extraSize1 = ((Integer) ast.D1.visit(this, frame)).intValue();
+        Frame frame1 = new Frame(frame, extraSize1);
+        extraSize2 = ((Integer) ast.D2.visit(this, frame1)).intValue();
+        return new Integer(extraSize1 + extraSize2);
+    }
+
+    public Object visitTypeDeclaration(TypeDeclaration ast, Object o) {
+        // just to ensure the type's representation is decided
+        ast.T.visit(this, null);
+        return new Integer(0);
+    }
+
+    public Object visitUnaryOperatorDeclaration(UnaryOperatorDeclaration ast,
+                                                Object o) {
+        return new Integer(0);
+    }
+
+    public Object visitVarDeclaration(VarDeclaration ast, Object o) {
+        Frame frame = (Frame) o;
+        int extraSize;
+
+        extraSize = ((Integer) ast.T.visit(this, null)).intValue();
+        emit(Machine.PUSHop, 0, 0, extraSize);
+        ast.entity = new KnownAddress(Machine.addressSize, frame.level, frame.size);
+        writeTableDetails(ast);
+        return new Integer(extraSize);
+    }
+
+    // Array Aggregates
+    public Object visitMultipleArrayAggregate(MultipleArrayAggregate ast,
+                                              Object o) {
+        Frame frame = (Frame) o;
+        int elemSize = ((Integer) ast.E.visit(this, frame)).intValue();
+        Frame frame1 = new Frame(frame, elemSize);
+        int arraySize = ((Integer) ast.AA.visit(this, frame1)).intValue();
+        return new Integer(elemSize + arraySize);
+    }
+
+    public Object visitSingleArrayAggregate(SingleArrayAggregate ast, Object o) {
+        return ast.E.visit(this, o);
+    }
+
+
+    // Record Aggregates
+    public Object visitMultipleRecordAggregate(MultipleRecordAggregate ast,
+                                               Object o) {
+        Frame frame = (Frame) o;
+        int fieldSize = ((Integer) ast.E.visit(this, frame)).intValue();
+        Frame frame1 = new Frame(frame, fieldSize);
+        int recordSize = ((Integer) ast.RA.visit(this, frame1)).intValue();
+        return new Integer(fieldSize + recordSize);
+    }
+
+    public Object visitSingleRecordAggregate(SingleRecordAggregate ast,
+                                             Object o) {
+        return ast.E.visit(this, o);
+    }
+
+
+    // Formal Parameters
+    public Object visitConstFormalParameter(ConstFormalParameter ast, Object o) {
+        Frame frame = (Frame) o;
+        int valSize = ((Integer) ast.T.visit(this, null)).intValue();
+        ast.entity = new UnknownValue(valSize, frame.level, -frame.size - valSize);
+        writeTableDetails(ast);
+        return new Integer(valSize);
+    }
+
+    public Object visitFuncFormalParameter(FuncFormalParameter ast, Object o) {
+        Frame frame = (Frame) o;
+        int argsSize = Machine.closureSize;
+        ast.entity = new UnknownRoutine(Machine.closureSize, frame.level,
+                -frame.size - argsSize);
+        writeTableDetails(ast);
+        return new Integer(argsSize);
+    }
+
+    public Object visitProcFormalParameter(ProcFormalParameter ast, Object o) {
+        Frame frame = (Frame) o;
+        int argsSize = Machine.closureSize;
+        ast.entity = new UnknownRoutine(Machine.closureSize, frame.level,
+                -frame.size - argsSize);
+        writeTableDetails(ast);
+        return new Integer(argsSize);
+    }
+
+    public Object visitVarFormalParameter(VarFormalParameter ast, Object o) {
+        Frame frame = (Frame) o;
+        ast.T.visit(this, null);
+        ast.entity = new UnknownAddress(Machine.addressSize, frame.level,
+                -frame.size - Machine.addressSize);
+        writeTableDetails(ast);
+        return new Integer(Machine.addressSize);
+    }
+
+
+    public Object visitEmptyFormalParameterSequence(
+            EmptyFormalParameterSequence ast, Object o) {
+        return new Integer(0);
+    }
+
+    public Object visitMultipleFormalParameterSequence(
+            MultipleFormalParameterSequence ast, Object o) {
+        Frame frame = (Frame) o;
+        int argsSize1 = ((Integer) ast.FPS.visit(this, frame)).intValue();
+        Frame frame1 = new Frame(frame, argsSize1);
+        int argsSize2 = ((Integer) ast.FP.visit(this, frame1)).intValue();
+        return new Integer(argsSize1 + argsSize2);
+    }
+
+    public Object visitSingleFormalParameterSequence(
+            SingleFormalParameterSequence ast, Object o) {
+        return ast.FP.visit(this, o);
+    }
+
+
+    // Actual Parameters
+    public Object visitConstActualParameter(ConstActualParameter ast, Object o) {
+        return ast.E.visit(this, o);
+    }
+
+    public Object visitFuncActualParameter(FuncActualParameter ast, Object o) {
+        Frame frame = (Frame) o;
+        if (ast.I.decl.entity instanceof KnownRoutine) {
+            ObjectAddress address = ((KnownRoutine) ast.I.decl.entity).address;
+            // static link, code address
+            emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level), 0);
+            emit(Machine.LOADAop, 0, Machine.CBr, address.displacement);
+        } else if (ast.I.decl.entity instanceof UnknownRoutine) {
+            ObjectAddress address = ((UnknownRoutine) ast.I.decl.entity).address;
+            emit(Machine.LOADop, Machine.closureSize, displayRegister(frame.level,
+                    address.level), address.displacement);
+        } else if (ast.I.decl.entity instanceof PrimitiveRoutine) {
+            int displacement = ((PrimitiveRoutine) ast.I.decl.entity).displacement;
+            // static link, code address
+            emit(Machine.LOADAop, 0, Machine.SBr, 0);
+            emit(Machine.LOADAop, 0, Machine.PBr, displacement);
+        }
+        return new Integer(Machine.closureSize);
+    }
+
+    public Object visitProcActualParameter(ProcActualParameter ast, Object o) {
+        Frame frame = (Frame) o;
+        if (ast.I.decl.entity instanceof KnownRoutine) {
+            ObjectAddress address = ((KnownRoutine) ast.I.decl.entity).address;
+            // static link, code address
+            emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level), 0);
+            emit(Machine.LOADAop, 0, Machine.CBr, address.displacement);
+        } else if (ast.I.decl.entity instanceof UnknownRoutine) {
+            ObjectAddress address = ((UnknownRoutine) ast.I.decl.entity).address;
+            emit(Machine.LOADop, Machine.closureSize, displayRegister(frame.level,
+                    address.level), address.displacement);
+        } else if (ast.I.decl.entity instanceof PrimitiveRoutine) {
+            int displacement = ((PrimitiveRoutine) ast.I.decl.entity).displacement;
+            // static link, code address
+            emit(Machine.LOADAop, 0, Machine.SBr, 0);
+            emit(Machine.LOADAop, 0, Machine.PBr, displacement);
+        }
+        return new Integer(Machine.closureSize);
+    }
+
+    public Object visitVarActualParameter(VarActualParameter ast, Object o) {
+        encodeFetchAddress(ast.V, (Frame) o);
+        return new Integer(Machine.addressSize);
+    }
+
+
+    public Object visitEmptyActualParameterSequence(
+            EmptyActualParameterSequence ast, Object o) {
+        return new Integer(0);
+    }
+
+    public Object visitMultipleActualParameterSequence(
+            MultipleActualParameterSequence ast, Object o) {
+        Frame frame = (Frame) o;
+        int argsSize1 = ((Integer) ast.AP.visit(this, frame)).intValue();
+        Frame frame1 = new Frame(frame, argsSize1);
+        int argsSize2 = ((Integer) ast.APS.visit(this, frame1)).intValue();
+        return new Integer(argsSize1 + argsSize2);
+    }
+
+    public Object visitSingleActualParameterSequence(
+            SingleActualParameterSequence ast, Object o) {
+        return ast.AP.visit(this, o);
+    }
+
+
+    // Type Denoters
+    public Object visitAnyTypeDenoter(AnyTypeDenoter ast, Object o) {
+        return new Integer(0);
+    }
+
+    public Object visitArrayTypeDenoter(ArrayTypeDenoter ast, Object o) {
+        int typeSize;
+        if (ast.entity == null) {
+            int elemSize = ((Integer) ast.T.visit(this, null)).intValue();
+            typeSize = Integer.parseInt(ast.IL.spelling) * elemSize;
+            ast.entity = new TypeRepresentation(typeSize);
+            writeTableDetails(ast);
+        } else
+            typeSize = ast.entity.size;
+        return new Integer(typeSize);
+    }
+
+    public Object visitBoolTypeDenoter(BoolTypeDenoter ast, Object o) {
+        if (ast.entity == null) {
+            ast.entity = new TypeRepresentation(Machine.booleanSize);
+            writeTableDetails(ast);
+        }
+        return new Integer(Machine.booleanSize);
+    }
+
+    public Object visitCharTypeDenoter(CharTypeDenoter ast, Object o) {
+        if (ast.entity == null) {
+            ast.entity = new TypeRepresentation(Machine.characterSize);
+            writeTableDetails(ast);
+        }
+        return new Integer(Machine.characterSize);
+    }
+
+    public Object visitErrorTypeDenoter(ErrorTypeDenoter ast, Object o) {
+        return new Integer(0);
+    }
+
+    public Object visitSimpleTypeDenoter(SimpleTypeDenoter ast,
+                                         Object o) {
+        return new Integer(0);
+    }
+
+    public Object visitIntTypeDenoter(IntTypeDenoter ast, Object o) {
+        if (ast.entity == null) {
+            ast.entity = new TypeRepresentation(Machine.integerSize);
+            writeTableDetails(ast);
+        }
+        return new Integer(Machine.integerSize);
+    }
+
+    public Object visitRecordTypeDenoter(RecordTypeDenoter ast, Object o) {
+        int typeSize;
+        if (ast.entity == null) {
+            typeSize = ((Integer) ast.FT.visit(this, new Integer(0))).intValue();
+            ast.entity = new TypeRepresentation(typeSize);
+            writeTableDetails(ast);
+        } else
+            typeSize = ast.entity.size;
+        return new Integer(typeSize);
+    }
+
+
+    public Object visitMultipleFieldTypeDenoter(MultipleFieldTypeDenoter ast,
+                                                Object o) {
+        int offset = ((Integer) o).intValue();
+        int fieldSize;
+
+        if (ast.entity == null) {
+            fieldSize = ((Integer) ast.T.visit(this, null)).intValue();
+            ast.entity = new Field(fieldSize, offset);
+            writeTableDetails(ast);
+        } else
+            fieldSize = ast.entity.size;
+
+        Integer offset1 = new Integer(offset + fieldSize);
+        int recSize = ((Integer) ast.FT.visit(this, offset1)).intValue();
+        return new Integer(fieldSize + recSize);
+    }
+
+    public Object visitSingleFieldTypeDenoter(SingleFieldTypeDenoter ast,
+                                              Object o) {
+        int offset = ((Integer) o).intValue();
+        int fieldSize;
+
+        if (ast.entity == null) {
+            fieldSize = ((Integer) ast.T.visit(this, null)).intValue();
+            ast.entity = new Field(fieldSize, offset);
+            writeTableDetails(ast);
+        } else
+            fieldSize = ast.entity.size;
+
+        return new Integer(fieldSize);
+    }
+
+
+    // Literals, Identifiers and Operators
+    public Object visitCharacterLiteral(CharacterLiteral ast, Object o) {
+        return null;
+    }
+
+    public Object visitIdentifier(Identifier ast, Object o) {
+        Frame frame = (Frame) o;
+        if (ast.decl.entity instanceof KnownRoutine) {
+            ObjectAddress address = ((KnownRoutine) ast.decl.entity).address;
+            emit(Machine.CALLop, displayRegister(frame.level, address.level),
+                    Machine.CBr, address.displacement);
+        } else if (ast.decl.entity instanceof UnknownRoutine) {
+            ObjectAddress address = ((UnknownRoutine) ast.decl.entity).address;
+            emit(Machine.LOADop, Machine.closureSize, displayRegister(frame.level,
+                    address.level), address.displacement);
+            emit(Machine.CALLIop, 0, 0, 0);
+        } else if (ast.decl.entity instanceof PrimitiveRoutine) {
+            int displacement = ((PrimitiveRoutine) ast.decl.entity).displacement;
+            if (displacement != Machine.idDisplacement)
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, displacement);
+        } else if (ast.decl.entity instanceof EqualityRoutine) { // "=" or "\="
+            int displacement = ((EqualityRoutine) ast.decl.entity).displacement;
+            emit(Machine.LOADLop, 0, 0, frame.size / 2);
+            emit(Machine.CALLop, Machine.SBr, Machine.PBr, displacement);
+        } else if (ast.decl.entity instanceof RecProcFunc || ast.decl.entity == null){
+            RecDeclaration.direccionesXparsear.put(ast.spelling, new int[]{nextInstrAddr, frame.level});
+            emit(Machine.CALLop, 0,
+                    Machine.CBr, 0);
+        }
+        return null;
+    }
+
+    public Object visitIntegerLiteral(IntegerLiteral ast, Object o) {
+        return null;
+    }
+
+    public Object visitOperator(Operator ast, Object o) {
+        Frame frame = (Frame) o;
+        if (ast.decl.entity instanceof KnownRoutine) {
+            ObjectAddress address = ((KnownRoutine) ast.decl.entity).address;
+            emit(Machine.CALLop, displayRegister(frame.level, address.level),
+                    Machine.CBr, address.displacement);
+        } else if (ast.decl.entity instanceof UnknownRoutine) {
+            ObjectAddress address = ((UnknownRoutine) ast.decl.entity).address;
+            emit(Machine.LOADop, Machine.closureSize, displayRegister(frame.level,
+                    address.level), address.displacement);
+            emit(Machine.CALLIop, 0, 0, 0);
+        } else if (ast.decl.entity instanceof PrimitiveRoutine) {
+            int displacement = ((PrimitiveRoutine) ast.decl.entity).displacement;
+            if (displacement != Machine.idDisplacement)
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, displacement);
+        } else if (ast.decl.entity instanceof EqualityRoutine) { // "=" or "\="
+            int displacement = ((EqualityRoutine) ast.decl.entity).displacement;
+            emit(Machine.LOADLop, 0, 0, frame.size / 2);
+            emit(Machine.CALLop, Machine.SBr, Machine.PBr, displacement);
+        }
+        return null;
+    }
+
+
+    // Value-or-variable names
+    public Object visitDotVname(DotVname ast, Object o) {
+        Frame frame = (Frame) o;
+        RuntimeEntity baseObject = (RuntimeEntity) ast.V.visit(this, frame);
+        ast.offset = ast.V.offset + ((Field) ast.I.decl.entity).fieldOffset;
+        // I.decl points to the appropriate record field
+        ast.indexed = ast.V.indexed;
+        return baseObject;
+    }
+
+    public Object visitSimpleVname(SimpleVname ast, Object o) {
+        ast.offset = 0;
+        ast.indexed = false;
+        return ast.I.decl.entity;
+    }
 
     public Object visitSubscriptVname(SubscriptVname ast, Object o) {
         Frame frame = (Frame) o;
@@ -770,8 +818,7 @@ public final class Encoder implements Visitor {
                 int indice = Integer.parseInt(IL.spelling) - il1;
                 IL.spelling = Integer.toString(indice);
                 ast.offset = ast.offset + indice * elemSize;
-            }
-            else if (ast.V.type instanceof ArrayTypeDenoter) {
+            } else if (ast.V.type instanceof ArrayTypeDenoter) {
                 il1 = Integer.parseInt(((ArrayTypeDenoter) ast.V.type).IL.spelling);
                 index = Integer.parseInt(IL.spelling);
                 emit(Machine.LOADLop, 0, 0, index);
@@ -783,8 +830,7 @@ public final class Encoder implements Visitor {
                 elemSize = ((Integer) ast.type.visit(this, null)).intValue();
                 ast.offset = ast.offset + Integer.parseInt(IL.spelling) * elemSize;
             }
-        }
-        else {
+        } else {
             if (ast.E instanceof VnameExpression) {
                 int il1, il2;
                 if (ast.V.type instanceof ArrayTypeDenoterStatic) {
@@ -812,9 +858,9 @@ public final class Encoder implements Visitor {
             if (ast.indexed)
                 frame.size = frame.size + Machine.integerSize;
             indexSize = ((Integer) ast.E.visit(this, frame)).intValue();
-            if(ast.V.type instanceof ArrayTypeDenoterStatic){
-              emit(Machine.LOADLop, 0, 0, Integer.parseInt(((ArrayTypeDenoterStatic) ast.V.type).IL.spelling));
-              emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.subDisplacement);
+            if (ast.V.type instanceof ArrayTypeDenoterStatic) {
+                emit(Machine.LOADLop, 0, 0, Integer.parseInt(((ArrayTypeDenoterStatic) ast.V.type).IL.spelling));
+                emit(Machine.CALLop, Machine.LBr, Machine.PBr, Machine.subDisplacement);
             }
             if (elemSize != 1) {
                 emit(Machine.LOADLop, 0, 0, elemSize);
@@ -830,59 +876,59 @@ public final class Encoder implements Visitor {
     }
 
 
-  // Programs
-  public Object visitProgram(Program ast, Object o) {
-    return ast.C.visit(this, o);
-  }
-
-  public Encoder (ErrorReporter reporter) {
-    this.reporter = reporter;
-    nextInstrAddr = Machine.CB;
-    elaborateStdEnvironment();
-  }
-
-  private ErrorReporter reporter;
-
-  // Generates code to run a program.
-  // showingTable is true iff entity description details
-  // are to be displayed.
-  public final void encodeRun (Program theAST, boolean showingTable) {
-    tableDetailsReqd = showingTable;
-    //startCodeGeneration();
-    theAST.visit(this, new Frame (0, 0));
-    emit(Machine.HALTop, 0, 0, 0);
-  }
-
-  // Decides run-time representation of a standard constant.
-  private final void elaborateStdConst (Declaration constDeclaration,
-					int value) {
-
-    if (constDeclaration instanceof ConstDeclaration) {
-      ConstDeclaration decl = (ConstDeclaration) constDeclaration;
-      int typeSize = ((Integer) decl.E.type.visit(this, null)).intValue();
-      decl.entity = new KnownValue(typeSize, value);
-      writeTableDetails(constDeclaration);
+    // Programs
+    public Object visitProgram(Program ast, Object o) {
+        return ast.C.visit(this, o);
     }
-  }
 
-  // Decides run-time representation of a standard routine.
-  private final void elaborateStdPrimRoutine (Declaration routineDeclaration,
-                                          int routineOffset) {
-    routineDeclaration.entity = new PrimitiveRoutine (Machine.closureSize, routineOffset);
-    writeTableDetails(routineDeclaration);
-  }
+    public Encoder(ErrorReporter reporter) {
+        this.reporter = reporter;
+        nextInstrAddr = Machine.CB;
+        elaborateStdEnvironment();
+    }
 
-  private final void elaborateStdEqRoutine (Declaration routineDeclaration,
-                                          int routineOffset) {
-    routineDeclaration.entity = new EqualityRoutine (Machine.closureSize, routineOffset);
-    writeTableDetails(routineDeclaration);
-  }
+    private ErrorReporter reporter;
 
-  private final void elaborateStdRoutine (Declaration routineDeclaration,
-                                          int routineOffset) {
-    routineDeclaration.entity = new KnownRoutine (Machine.closureSize, 0, routineOffset);
-    writeTableDetails(routineDeclaration);
-  }
+    // Generates code to run a program.
+    // showingTable is true iff entity description details
+    // are to be displayed.
+    public final void encodeRun(Program theAST, boolean showingTable) {
+        tableDetailsReqd = showingTable;
+        //startCodeGeneration();
+        theAST.visit(this, new Frame(0, 0));
+        emit(Machine.HALTop, 0, 0, 0);
+    }
+
+    // Decides run-time representation of a standard constant.
+    private final void elaborateStdConst(Declaration constDeclaration,
+                                         int value) {
+
+        if (constDeclaration instanceof ConstDeclaration) {
+            ConstDeclaration decl = (ConstDeclaration) constDeclaration;
+            int typeSize = ((Integer) decl.E.type.visit(this, null)).intValue();
+            decl.entity = new KnownValue(typeSize, value);
+            writeTableDetails(constDeclaration);
+        }
+    }
+
+    // Decides run-time representation of a standard routine.
+    private final void elaborateStdPrimRoutine(Declaration routineDeclaration,
+                                               int routineOffset) {
+        routineDeclaration.entity = new PrimitiveRoutine(Machine.closureSize, routineOffset);
+        writeTableDetails(routineDeclaration);
+    }
+
+    private final void elaborateStdEqRoutine(Declaration routineDeclaration,
+                                             int routineOffset) {
+        routineDeclaration.entity = new EqualityRoutine(Machine.closureSize, routineOffset);
+        writeTableDetails(routineDeclaration);
+    }
+
+    private final void elaborateStdRoutine(Declaration routineDeclaration,
+                                           int routineOffset) {
+        routineDeclaration.entity = new KnownRoutine(Machine.closureSize, 0, routineOffset);
+        writeTableDetails(routineDeclaration);
+    }
 
     private final void elaborateStdEnvironment() {
         tableDetailsReqd = false;
@@ -916,198 +962,201 @@ public final class Encoder implements Visitor {
         elaborateStdEqRoutine(StdEnvironment.unequalDecl, Machine.neDisplacement);
     }
 
-  // Saves the object program in the named file.
+    // Saves the object program in the named file.
 
-  public void saveObjectProgram(String objectName) {
-    FileOutputStream objectFile = null;
-    DataOutputStream objectStream = null;
+    public void saveObjectProgram(String objectName) {
+        FileOutputStream objectFile = null;
+        DataOutputStream objectStream = null;
 
-    int addr;
+        int addr;
 
-    try {
-      objectFile = new FileOutputStream (objectName);
-      objectStream = new DataOutputStream (objectFile);
+        try {
+            objectFile = new FileOutputStream(objectName);
+            objectStream = new DataOutputStream(objectFile);
 
-      addr = Machine.CB;
-      for (addr = Machine.CB; addr < nextInstrAddr; addr++)
-        Machine.code[addr].write(objectStream);
-      objectFile.close();
-    } catch (FileNotFoundException s) {
-      System.err.println ("Error opening object file: " + s);
-    } catch (IOException s) {
-      System.err.println ("Error writing object file: " + s);
+            addr = Machine.CB;
+            for (addr = Machine.CB; addr < nextInstrAddr; addr++)
+                Machine.code[addr].write(objectStream);
+            objectFile.close();
+        } catch (FileNotFoundException s) {
+            System.err.println("Error opening object file: " + s);
+        } catch (IOException s) {
+            System.err.println("Error writing object file: " + s);
+        }
     }
-  }
 
-  boolean tableDetailsReqd;
+    boolean tableDetailsReqd;
 
-  public static void writeTableDetails(AST ast) { }
-
-  // OBJECT CODE
-
-  // Implementation notes:
-  // Object code is generated directly into the TAM Code Store, starting at CB.
-  // The address of the next instruction is held in nextInstrAddr.
-
-  private int nextInstrAddr;
-
-  // Appends an instruction, with the given fields, to the object code.
-  private void emit (int op, int n, int r, int d) {
-    Instruction nextInstr = new Instruction();
-    if (n > 255) {
-        reporter.reportRestriction("length of operand can't exceed 255 words");
-        n = 255; // to allow code generation to continue
+    public static void writeTableDetails(AST ast) {
     }
-    nextInstr.op = op;
-    nextInstr.n = n; //Tamanno del campo
-    nextInstr.r = r; //registro
-    nextInstr.d = d; // op field
-    if (nextInstrAddr == Machine.PB)
-      reporter.reportRestriction("too many instructions for code segment");
-    else {
-        Machine.code[nextInstrAddr] = nextInstr;
-        nextInstrAddr = nextInstrAddr + 1;
+
+    // OBJECT CODE
+
+    // Implementation notes:
+    // Object code is generated directly into the TAM Code Store, starting at CB.
+    // The address of the next instruction is held in nextInstrAddr.
+
+    private int nextInstrAddr;
+
+    // Appends an instruction, with the given fields, to the object code.
+    private void emit(int op, int n, int r, int d) {
+        Instruction nextInstr = new Instruction();
+        if (n > 255) {
+            reporter.reportRestriction("length of operand can't exceed 255 words");
+            n = 255; // to allow code generation to continue
+        }
+        nextInstr.op = op;
+        nextInstr.n = n; //Tamanno del campo
+        nextInstr.r = r; //registro
+        nextInstr.d = d; // op field
+        if (nextInstrAddr == Machine.PB)
+            reporter.reportRestriction("too many instructions for code segment");
+        else {
+            Machine.code[nextInstrAddr] = nextInstr;
+            nextInstrAddr = nextInstrAddr + 1;
+        }
     }
-  }
 
-  // Patches the d-field of the instruction at address addr.
-  private void patch (int addr, int d) {
-    Machine.code[addr].d = d;
-  }
-
-  // DATA REPRESENTATION
-
-  public int characterValuation (String spelling) {
-  // Returns the machine representation of the given character literal.
-    return spelling.charAt(1);
-      // since the character literal is of the form 'x'}
-  }
-
-  // REGISTERS
-
-  // Returns the register number appropriate for object code at currentLevel
-  // to address a data object at objectLevel.
-  private int displayRegister (int currentLevel, int objectLevel) {
-    if (objectLevel == 0)
-      return Machine.SBr;
-    else if (currentLevel - objectLevel <= 6)
-      return Machine.LBr + currentLevel - objectLevel; // LBr|L1r|...|L6r
-    else {
-      reporter.reportRestriction("can't access data more than 6 levels out");
-      return Machine.L6r;  // to allow code generation to continue
+    // Patches the d-field of the instruction at address addr.
+    private void patch(int addr, int d) {
+        Machine.code[addr].d = d;
     }
-  }
 
-  // Generates code to fetch the value of a named constant or variable
-  // and push it on to the stack.
-  // currentLevel is the routine level where the vname occurs.
-  // frameSize is the anticipated size of the local stack frame when
-  // the constant or variable is fetched at run-time.
-  // valSize is the size of the constant or variable's value.
-
-  private void encodeStore(Vname V, Frame frame, int valSize) {
-
-    RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);
-    // If indexed = true, code will have been generated to load an index value.
-    if (valSize > 255) {
-      reporter.reportRestriction("can't store values larger than 255 words");
-      valSize = 255; // to allow code generation to continue
+    private void patch(int addr, int d, int n){
+        Machine.code[addr].d = d;
+        Machine.code[addr].n = n;
     }
-    if (baseObject instanceof KnownAddress) {
-      ObjectAddress address = ((KnownAddress) baseObject).address;
-      if (V.indexed) {
-        emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level),
-             address.displacement + V.offset);
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-        emit(Machine.STOREIop, valSize, 0, 0);
-      } else {
-        emit(Machine.STOREop, valSize, displayRegister(frame.level,
-	     address.level), address.displacement + V.offset);
-      }
-    } else if (baseObject instanceof UnknownAddress) {
-      ObjectAddress address = ((UnknownAddress) baseObject).address;
-      emit(Machine.LOADop, Machine.addressSize, displayRegister(frame.level,
-           address.level), address.displacement);
-      if (V.indexed)
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-      if (V.offset != 0) {
-        emit(Machine.LOADLop, 0, 0, V.offset);
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-      }
-      emit(Machine.STOREIop, valSize, 0, 0);
-    }
-  }
 
-  // Generates code to fetch the value of a named constant or variable
-  // and push it on to the stack.
-  // currentLevel is the routine level where the vname occurs.
-  // frameSize is the anticipated size of the local stack frame when
-  // the constant or variable is fetched at run-time.
-  // valSize is the size of the constant or variable's value.
+    // DATA REPRESENTATION
 
-  private void encodeFetch(Vname V, Frame frame, int valSize) {
+    public int characterValuation(String spelling) {
+        // Returns the machine representation of the given character literal.
+        return spelling.charAt(1);
+        // since the character literal is of the form 'x'}
+    }
 
-    RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);
-    // If indexed = true, code will have been generated to load an index value.
-    if (valSize > 255) {
-      reporter.reportRestriction("can't load values larger than 255 words");
-      valSize = 255; // to allow code generation to continue
-    }
-    if (baseObject instanceof KnownValue) {
-      // presumably offset = 0 and indexed = false
-      int value = ((KnownValue) baseObject).value;
-      emit(Machine.LOADLop, 0, 0, value);
-    }
-    else if ((baseObject instanceof UnknownValue) || (baseObject instanceof KnownAddress)) {
-      ObjectAddress address = (baseObject instanceof UnknownValue) ? ((UnknownValue) baseObject).address : ((KnownAddress) baseObject).address;
-      if (V.indexed) {
-        emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level), address.displacement + V.offset);
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-        emit(Machine.LOADIop, valSize, 0, 0);
-      }
-      else
-        emit(Machine.LOADop, valSize, displayRegister(frame.level, address.level), address.displacement + V.offset);
-    }
-    else if (baseObject instanceof UnknownAddress) {
-      ObjectAddress address = ((UnknownAddress) baseObject).address;
-      emit(Machine.LOADop, Machine.addressSize, displayRegister(frame.level,
-           address.level), address.displacement);
-      if (V.indexed)
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-      if (V.offset != 0) {
-        emit(Machine.LOADLop, 0, 0, V.offset);
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-      }
-      emit(Machine.LOADIop, valSize, 0, 0);
-    }
-  }
+    // REGISTERS
 
-  // Generates code to compute and push the address of a named variable.
-  // vname is the program phrase that names this variable.
-  // currentLevel is the routine level where the vname occurs.
-  // frameSize is the anticipated size of the local stack frame when
-  // the variable is addressed at run-time.
-
-  private void encodeFetchAddress (Vname V, Frame frame) {
-
-    RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);
-    // If indexed = true, code will have been generated to load an index value.
-    if (baseObject instanceof KnownAddress) {
-      ObjectAddress address = ((KnownAddress) baseObject).address;
-      emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level),
-           address.displacement + V.offset);
-      if (V.indexed)
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-    } else if (baseObject instanceof UnknownAddress) {
-      ObjectAddress address = ((UnknownAddress) baseObject).address;
-      emit(Machine.LOADop, Machine.addressSize,displayRegister(frame.level,
-           address.level), address.displacement);
-      if (V.indexed)
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-      if (V.offset != 0) {
-        emit(Machine.LOADLop, 0, 0, V.offset);
-        emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
-      }
+    // Returns the register number appropriate for object code at currentLevel
+    // to address a data object at objectLevel.
+    private int displayRegister(int currentLevel, int objectLevel) {
+        if (objectLevel == 0)
+            return Machine.SBr;
+        else if (currentLevel - objectLevel <= 6)
+            return Machine.LBr + currentLevel - objectLevel; // LBr|L1r|...|L6r
+        else {
+            reporter.reportRestriction("can't access data more than 6 levels out");
+            return Machine.L6r;  // to allow code generation to continue
+        }
     }
-  }
+
+    // Generates code to fetch the value of a named constant or variable
+    // and push it on to the stack.
+    // currentLevel is the routine level where the vname occurs.
+    // frameSize is the anticipated size of the local stack frame when
+    // the constant or variable is fetched at run-time.
+    // valSize is the size of the constant or variable's value.
+
+    private void encodeStore(Vname V, Frame frame, int valSize) {
+
+        RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);
+        // If indexed = true, code will have been generated to load an index value.
+        if (valSize > 255) {
+            reporter.reportRestriction("can't store values larger than 255 words");
+            valSize = 255; // to allow code generation to continue
+        }
+        if (baseObject instanceof KnownAddress) {
+            ObjectAddress address = ((KnownAddress) baseObject).address;
+            if (V.indexed) {
+                emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level),
+                        address.displacement + V.offset);
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+                emit(Machine.STOREIop, valSize, 0, 0);
+            } else {
+                emit(Machine.STOREop, valSize, displayRegister(frame.level,
+                        address.level), address.displacement + V.offset);
+            }
+        } else if (baseObject instanceof UnknownAddress) {
+            ObjectAddress address = ((UnknownAddress) baseObject).address;
+            emit(Machine.LOADop, Machine.addressSize, displayRegister(frame.level,
+                    address.level), address.displacement);
+            if (V.indexed)
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+            if (V.offset != 0) {
+                emit(Machine.LOADLop, 0, 0, V.offset);
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+            }
+            emit(Machine.STOREIop, valSize, 0, 0);
+        }
+    }
+
+    // Generates code to fetch the value of a named constant or variable
+    // and push it on to the stack.
+    // currentLevel is the routine level where the vname occurs.
+    // frameSize is the anticipated size of the local stack frame when
+    // the constant or variable is fetched at run-time.
+    // valSize is the size of the constant or variable's value.
+
+    private void encodeFetch(Vname V, Frame frame, int valSize) {
+
+        RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);
+        // If indexed = true, code will have been generated to load an index value.
+        if (valSize > 255) {
+            reporter.reportRestriction("can't load values larger than 255 words");
+            valSize = 255; // to allow code generation to continue
+        }
+        if (baseObject instanceof KnownValue) {
+            // presumably offset = 0 and indexed = false
+            int value = ((KnownValue) baseObject).value;
+            emit(Machine.LOADLop, 0, 0, value);
+        } else if ((baseObject instanceof UnknownValue) || (baseObject instanceof KnownAddress)) {
+            ObjectAddress address = (baseObject instanceof UnknownValue) ? ((UnknownValue) baseObject).address : ((KnownAddress) baseObject).address;
+            if (V.indexed) {
+                emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level), address.displacement + V.offset);
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+                emit(Machine.LOADIop, valSize, 0, 0);
+            } else
+                emit(Machine.LOADop, valSize, displayRegister(frame.level, address.level), address.displacement + V.offset);
+        } else if (baseObject instanceof UnknownAddress) {
+            ObjectAddress address = ((UnknownAddress) baseObject).address;
+            emit(Machine.LOADop, Machine.addressSize, displayRegister(frame.level,
+                    address.level), address.displacement);
+            if (V.indexed)
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+            if (V.offset != 0) {
+                emit(Machine.LOADLop, 0, 0, V.offset);
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+            }
+            emit(Machine.LOADIop, valSize, 0, 0);
+        }
+    }
+
+    // Generates code to compute and push the address of a named variable.
+    // vname is the program phrase that names this variable.
+    // currentLevel is the routine level where the vname occurs.
+    // frameSize is the anticipated size of the local stack frame when
+    // the variable is addressed at run-time.
+
+    private void encodeFetchAddress(Vname V, Frame frame) {
+
+        RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);
+        // If indexed = true, code will have been generated to load an index value.
+        if (baseObject instanceof KnownAddress) {
+            ObjectAddress address = ((KnownAddress) baseObject).address;
+            emit(Machine.LOADAop, 0, displayRegister(frame.level, address.level),
+                    address.displacement + V.offset);
+            if (V.indexed)
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+        } else if (baseObject instanceof UnknownAddress) {
+            ObjectAddress address = ((UnknownAddress) baseObject).address;
+            emit(Machine.LOADop, Machine.addressSize, displayRegister(frame.level,
+                    address.level), address.displacement);
+            if (V.indexed)
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+            if (V.offset != 0) {
+                emit(Machine.LOADLop, 0, 0, V.offset);
+                emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+            }
+        }
+    }
 }
