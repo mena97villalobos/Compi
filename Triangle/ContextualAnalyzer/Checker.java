@@ -145,38 +145,13 @@ public final class Checker implements Visitor {
 
   @Override
   public Object visitPrivateDeclaration(PrivateDeclaration ast, Object o) {
-      ArrayList<Integer> cantidadDeclaraciones  = new ArrayList<>();
-      cantidadDeclaraciones.add(0);
-      cantidadDeclaraciones.add(0);
-      contarDeclaraciones(ast.D1,cantidadDeclaraciones,true); // Este cuenta cuantas declaraciones hay en el private
-      contarDeclaraciones(ast.D2,cantidadDeclaraciones,false); // Este cuenta cuantas declaraciones hay en el in del private
       idTable.openScope();
+      idTable.openPrivate();
       ast.D1.visit(this, null);
+      idTable.closePrivate();
       ast.D2.visit(this, null);
-      idTable.closePrivateScope(cantidadDeclaraciones);
+      idTable.closePrivateScope();
       return null;
-  }
-
-  public void contarDeclaraciones(Declaration declaraciones,ArrayList<Integer> cantDeclaraciones,boolean privado){
-    // Este cuenta a D2 que es simple
-    if(declaraciones instanceof SequentialDeclaration ){
-      contarDeclaraciones(((SequentialDeclaration) declaraciones).D1,cantDeclaraciones,privado);
-      sumaPrivadoNoPrivado(privado,cantDeclaraciones); // Aqui suma al D2 que estaria solito
-    }
-    else if (declaraciones instanceof ProcFuncs){
-      contarDeclaraciones(((ProcFuncs) declaraciones).D1,cantDeclaraciones,privado);
-      sumaPrivadoNoPrivado(privado,cantDeclaraciones); // Aqui suma al D2 que estaria solito
-    }
-    else{
-      sumaPrivadoNoPrivado(privado,cantDeclaraciones);
-    }
-  }
-
-  public void sumaPrivadoNoPrivado(boolean privado, ArrayList<Integer> cantDeclaraciones){
-    if (privado)
-      cantDeclaraciones.set(0,cantDeclaraciones.get(0)+1);
-    else
-      cantDeclaraciones.set(1,cantDeclaraciones.get(1)+1);
   }
 
   @Override
@@ -452,7 +427,7 @@ public final class Checker implements Visitor {
     idTable.enter (ast.I.spelling, ast);
     if (ast.duplicated)
       reporter.reportError ("identifier \"%\" already declared",
-                            ast.I.spelling, ast.position);
+              ast.I.spelling, ast.position);
 
     return null;
   }

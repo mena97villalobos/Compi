@@ -23,6 +23,7 @@ public final class IdentificationTable {
 
   private int level;
   private IdEntry latest;
+  private boolean isPrivate = false;
 
   public IdentificationTable () {
     level = 0;
@@ -35,6 +36,14 @@ public final class IdentificationTable {
   public void openScope () {
 
     level ++;
+  }
+
+  public void openPrivate(){
+    this.isPrivate = true;
+  }
+
+  public void closePrivate(){
+    this.isPrivate = false;
   }
 
   // Closes the topmost level in the identification table, discarding
@@ -54,23 +63,22 @@ public final class IdentificationTable {
     this.latest = entry;
   }
 
-  public void closePrivateScope(ArrayList<Integer> cantidadDeclaraciones){
-    IdEntry segundasDeclaraciones =this.latest;
-
-    for(int i = cantidadDeclaraciones.get(1) ; i>1 ;i--){
-      segundasDeclaraciones.level--;
-      segundasDeclaraciones = segundasDeclaraciones.previous;
+  public void closePrivateScope(){
+    boolean eliminando = true;
+    IdEntry aux = this.latest;
+    IdEntry ultimaEntrada = this.latest;
+    while(eliminando){
+      if(ultimaEntrada.previous == null)
+        eliminando = false;
+      else if(!ultimaEntrada.isPrivate) {
+        aux = ultimaEntrada;
+        ultimaEntrada = ultimaEntrada.previous;
+      }
+      else {
+        ultimaEntrada = ultimaEntrada.previous;
+        aux.previous = ultimaEntrada;
+      }
     }
-    segundasDeclaraciones.level --; //Disminuya un nivel al ultimo que salio
-
-    IdEntry primerDeclaracionPrivada = segundasDeclaraciones.previous;// Aqui inicia la ultima declaracion privada
-    for(int i = cantidadDeclaraciones.get(0) ; i>1 ;i--){
-
-      primerDeclaracionPrivada = primerDeclaracionPrivada.previous;
-    }
-
-    segundasDeclaraciones.previous = primerDeclaracionPrivada.previous; //Aqui, se apunta la primer variable de la segunda declaracion del private a el primer bloque
-    level--;
   }
 
   // Makes a new entry in the identification table for the given identifier
@@ -92,10 +100,10 @@ public final class IdentificationTable {
        } else
        entry = entry.previous;
     }
-
     attr.duplicated = present;
     // Add new entry ...
     entry = new IdEntry(id, attr, this.level, this.latest);
+    entry.setIsPrivate(this.isPrivate);
     this.latest = entry;
   }
 
