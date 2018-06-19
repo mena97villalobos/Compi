@@ -207,7 +207,7 @@ public class Interpreter {
                 System.out.println("Program has failed due to an IO error.");
                 break;
             case indexoutofbound:
-                //TODO agregado
+                //Proyecto 3 Agregado para Indicar una salida anormal del programa por un index out of bound
                 System.out.println("Index Out of Bound");
                 break;
 
@@ -434,11 +434,11 @@ public class Interpreter {
                 ST = ST - 1; // no action taken at present
                 break;
             case Machine.indexcheck:
-        /* Proyecto 3 función primitiva añadida para validar indices de acceso a arreglos
-        ST - 1 -> index
-        ST - 2 -> IL1
-        ST - 3 -> IL2
-         */
+                /* Proyecto 3 función primitiva añadida para validar indices de acceso a arreglos
+                ST - 1 -> index
+                ST - 2 -> IL1
+                ST - 3 -> IL2
+                 */
                 ST = ST - 1;
                 int index, il1, il2;
                 index = data[ST - 2];
@@ -449,7 +449,6 @@ public class Interpreter {
                 }
                 ST = ST - 2;
                 break;
-            //TODO :'v
         }
     }
 
@@ -644,7 +643,7 @@ public class Interpreter {
         if (args.length == 1)
             objectName = args[0];
         else
-            objectName = "obj.tam"; //TODO comentario para debuggear "C:\\Users\\mena9\\Desktop\\NothingErr2.tam"; //
+            objectName = "obj.tam";
         loadObjectProgram(objectName);
         if (CT != CB) {
             interpretProgram();

@@ -121,7 +121,7 @@ public final class Checker implements Visitor {
         idTable.openScope();
 
         idTable.enter(ast.I.spelling, new VarDeclaration(ast.I, e1Type, ast.position));
-        ast.I.visit(this, null); //TODO SWAP DE 55 Y 56
+        ast.I.visit(this, null);
         int revision = ast.revisarCommand(ast.C);
         if (revision == -1) {
             reporter.reportError("Control Variable must not be used in assign command", "", ast.C.position);

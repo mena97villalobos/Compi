@@ -123,7 +123,7 @@ public class Compiler {
             System.out.println("Usage: tc filename");
             System.exit(1);
         }
-        String sourceName = args[0]; //TODO comentario para debuggear "C:\\Users\\mena9\\Desktop\\NothingErr2.tri";//
+        String sourceName = args[0];
         String objectNameAux = sourceName.replace(".tri", ".tam");
         compiledOK = compileProgram(sourceName, objectNameAux, false, false);
     }
