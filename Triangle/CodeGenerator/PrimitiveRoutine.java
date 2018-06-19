@@ -16,16 +16,16 @@ package Triangle.CodeGenerator;
 
 public class PrimitiveRoutine extends RuntimeEntity {
 
-  public PrimitiveRoutine () {
-    super();
-    displacement = 0;
-  }
+    public PrimitiveRoutine() {
+        super();
+        displacement = 0;
+    }
 
-  public PrimitiveRoutine (int size, int displacement) {
-    super (size);
-    this.displacement = displacement;
-  }
+    public PrimitiveRoutine(int size, int displacement) {
+        super(size);
+        this.displacement = displacement;
+    }
 
-  public int displacement;
+    public int displacement;
 
 }

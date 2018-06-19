@@ -18,12 +18,12 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class IntegerLiteral extends Terminal {
 
-  public IntegerLiteral (String theSpelling, SourcePosition thePosition) {
-    super (theSpelling, thePosition);
-  }
+    public IntegerLiteral(String theSpelling, SourcePosition thePosition) {
+        super(theSpelling, thePosition);
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitIntegerLiteral(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitIntegerLiteral(this, o);
+    }
 
 }

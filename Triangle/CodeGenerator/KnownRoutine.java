@@ -16,16 +16,16 @@ package Triangle.CodeGenerator;
 
 public class KnownRoutine extends RuntimeEntity {
 
-  public KnownRoutine () {
-    super();
-    address = null;
-  }
+    public KnownRoutine() {
+        super();
+        address = null;
+    }
 
-  public KnownRoutine (int size, int level, int displacement) {
-    super(size);
-    address = new ObjectAddress(level, displacement);
-  }
+    public KnownRoutine(int size, int level, int displacement) {
+        super(size);
+        address = new ObjectAddress(level, displacement);
+    }
 
-  public ObjectAddress address;
+    public ObjectAddress address;
 
 }

@@ -18,18 +18,18 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class BoolTypeDenoter extends TypeDenoter {
 
-  public BoolTypeDenoter (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public BoolTypeDenoter(SourcePosition thePosition) {
+        super(thePosition);
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitBoolTypeDenoter(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitBoolTypeDenoter(this, o);
+    }
 
-  public boolean equals (Object obj) {
-    if ((obj != null) && (obj instanceof ErrorTypeDenoter))
-      return true;
-    else
-      return ((obj != null) && (obj instanceof BoolTypeDenoter));
-  }
+    public boolean equals(Object obj) {
+        if ((obj != null) && (obj instanceof ErrorTypeDenoter))
+            return true;
+        else
+            return ((obj != null) && (obj instanceof BoolTypeDenoter));
+    }
 }

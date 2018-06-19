@@ -18,15 +18,15 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class ErrorTypeDenoter extends TypeDenoter {
 
-  public ErrorTypeDenoter (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public ErrorTypeDenoter(SourcePosition thePosition) {
+        super(thePosition);
+    }
 
-  public Object visit (Visitor v, Object o) {
-    return v.visitErrorTypeDenoter(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitErrorTypeDenoter(this, o);
+    }
 
-  public boolean equals (Object obj) {
-    return true;
-  }
+    public boolean equals(Object obj) {
+        return true;
+    }
 }

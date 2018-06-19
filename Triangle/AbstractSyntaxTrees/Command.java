@@ -18,7 +18,7 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public abstract class Command extends AST {
 
-  public Command (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public Command(SourcePosition thePosition) {
+        super(thePosition);
+    }
 }

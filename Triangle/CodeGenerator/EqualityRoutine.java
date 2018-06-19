@@ -16,15 +16,15 @@ package Triangle.CodeGenerator;
 
 public class EqualityRoutine extends RuntimeEntity {
 
-  public EqualityRoutine () {
-    super();
-  }
+    public EqualityRoutine() {
+        super();
+    }
 
-  public EqualityRoutine (int size, int displacement) {
-    super (size);
-    this.displacement = displacement;
-  }
+    public EqualityRoutine(int size, int displacement) {
+        super(size);
+        this.displacement = displacement;
+    }
 
-  public int displacement;
+    public int displacement;
 
 }

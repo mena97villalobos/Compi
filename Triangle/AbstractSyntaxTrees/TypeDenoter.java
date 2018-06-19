@@ -18,10 +18,10 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public abstract class TypeDenoter extends AST {
 
-  public TypeDenoter (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public TypeDenoter(SourcePosition thePosition) {
+        super(thePosition);
+    }
 
-  public abstract boolean equals(Object obj);
+    public abstract boolean equals(Object obj);
 
 }

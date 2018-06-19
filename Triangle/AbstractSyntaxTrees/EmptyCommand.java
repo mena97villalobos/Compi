@@ -18,11 +18,11 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class EmptyCommand extends Command {
 
-  public EmptyCommand (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public EmptyCommand(SourcePosition thePosition) {
+        super(thePosition);
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitEmptyCommand(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitEmptyCommand(this, o);
+    }
 }

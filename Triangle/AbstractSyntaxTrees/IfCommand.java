@@ -18,18 +18,18 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class IfCommand extends Command {
 
-  public IfCommand (Expression eAST, Command c1AST, Command c2AST,
-                    SourcePosition thePosition) {
-    super (thePosition);
-    E = eAST;
-    C1 = c1AST; //Comand del if
-    C2 = c2AST; //Command del else y el opcional del elif
-  }
+    public IfCommand(Expression eAST, Command c1AST, Command c2AST,
+                     SourcePosition thePosition) {
+        super(thePosition);
+        E = eAST;
+        C1 = c1AST; //Comand del if
+        C2 = c2AST; //Command del else y el opcional del elif
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitIfCommand(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitIfCommand(this, o);
+    }
 
-  public Expression E;
-  public Command C1, C2;
+    public Expression E;
+    public Command C1, C2;
 }

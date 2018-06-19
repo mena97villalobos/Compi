@@ -18,10 +18,10 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 abstract public class Terminal extends AST {
 
-  public Terminal (String theSpelling, SourcePosition thePosition) {
-    super (thePosition);
-    spelling = theSpelling;
-  }
+    public Terminal(String theSpelling, SourcePosition thePosition) {
+        super(thePosition);
+        spelling = theSpelling;
+    }
 
-  public String spelling;
+    public String spelling;
 }

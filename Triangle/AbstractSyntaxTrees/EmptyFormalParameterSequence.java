@@ -18,15 +18,15 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class EmptyFormalParameterSequence extends FormalParameterSequence {
 
-  public EmptyFormalParameterSequence (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public EmptyFormalParameterSequence(SourcePosition thePosition) {
+        super(thePosition);
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitEmptyFormalParameterSequence(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitEmptyFormalParameterSequence(this, o);
+    }
 
-  public boolean equals(Object fpsAST) {
-    return (fpsAST instanceof EmptyFormalParameterSequence);
-  }
+    public boolean equals(Object fpsAST) {
+        return (fpsAST instanceof EmptyFormalParameterSequence);
+    }
 }

@@ -16,16 +16,16 @@ package Triangle.CodeGenerator;
 
 public class KnownAddress extends RuntimeEntity {
 
-  public KnownAddress () {
-    super();
-    address = null;
-  }
+    public KnownAddress() {
+        super();
+        address = null;
+    }
 
-  public KnownAddress (int size, int level, int displacement) {
-    super(size);
-    address = new ObjectAddress(level, displacement);
-  }
+    public KnownAddress(int size, int level, int displacement) {
+        super(size);
+        address = new ObjectAddress(level, displacement);
+    }
 
-  public ObjectAddress address;
+    public ObjectAddress address;
 
 }

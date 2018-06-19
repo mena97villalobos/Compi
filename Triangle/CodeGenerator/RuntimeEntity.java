@@ -18,16 +18,16 @@ package Triangle.CodeGenerator;
 
 public abstract class RuntimeEntity {
 
-  public final static int maxRoutineLevel = 7;
+    public final static int maxRoutineLevel = 7;
 
-  public RuntimeEntity () {
-    size = 0;
-  }
+    public RuntimeEntity() {
+        size = 0;
+    }
 
-  public RuntimeEntity (int size) {
-    this.size = size;
-  }
+    public RuntimeEntity(int size) {
+        this.size = size;
+    }
 
-  public int size;
+    public int size;
 
 }

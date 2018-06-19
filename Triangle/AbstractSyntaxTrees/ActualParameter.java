@@ -18,7 +18,7 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public abstract class ActualParameter extends AST {
 
-  public ActualParameter (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public ActualParameter(SourcePosition thePosition) {
+        super(thePosition);
+    }
 }

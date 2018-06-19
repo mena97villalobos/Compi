@@ -18,17 +18,17 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class CallCommand extends Command {
 
-  public CallCommand (Identifier iAST, ActualParameterSequence apsAST,
-               SourcePosition thePosition) {
-    super (thePosition);
-    I = iAST;
-    APS = apsAST;
-  }
+    public CallCommand(Identifier iAST, ActualParameterSequence apsAST,
+                       SourcePosition thePosition) {
+        super(thePosition);
+        I = iAST;
+        APS = apsAST;
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitCallCommand(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitCallCommand(this, o);
+    }
 
-  public Identifier I;
-  public ActualParameterSequence APS;
+    public Identifier I;
+    public ActualParameterSequence APS;
 }

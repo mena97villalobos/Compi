@@ -14,37 +14,32 @@
 
 package Triangle.TreeDrawer;
 
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-
 class DrawerFrame extends JFrame {
-  public DrawerFrame (JPanel panel) {
-    setSize(300, 200);
-    Toolkit tk = Toolkit.getDefaultToolkit();
-    Dimension d = tk.getScreenSize();
-    int screenHeight = d.height;
-    int screenWidth = d.width;
-    setTitle("Triangle Compiler Abstract Syntax Tree");
-    setSize(screenWidth / 2, screenHeight / 2);
-    setLocation(screenWidth / 4, screenHeight / 4);
-    // Image img = tk.getImage("icon.gif");
-    // setIconImage(img);
+    public DrawerFrame(JPanel panel) {
+        setSize(300, 200);
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        Dimension d = tk.getScreenSize();
+        int screenHeight = d.height;
+        int screenWidth = d.width;
+        setTitle("Triangle Compiler Abstract Syntax Tree");
+        setSize(screenWidth / 2, screenHeight / 2);
+        setLocation(screenWidth / 4, screenHeight / 4);
+        // Image img = tk.getImage("icon.gif");
+        // setIconImage(img);
 
-    addWindowListener(
-      new WindowAdapter() {
-        public void windowClosing (WindowEvent e) {
-      	  System.exit(0);
-        }
-      }
-    );
-    Container contentPane = getContentPane();
-    contentPane.add(new JScrollPane(panel));
-  }
+        addWindowListener(
+                new WindowAdapter() {
+                    public void windowClosing(WindowEvent e) {
+                        System.exit(0);
+                    }
+                }
+        );
+        Container contentPane = getContentPane();
+        contentPane.add(new JScrollPane(panel));
+    }
 }

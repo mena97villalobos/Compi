@@ -18,17 +18,17 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class MultipleArrayAggregate extends ArrayAggregate {
 
-  public MultipleArrayAggregate (Expression eAST, ArrayAggregate aaAST,
-                          SourcePosition thePosition) {
-    super (thePosition);
-    E = eAST;
-    AA = aaAST;
-  }
+    public MultipleArrayAggregate(Expression eAST, ArrayAggregate aaAST,
+                                  SourcePosition thePosition) {
+        super(thePosition);
+        E = eAST;
+        AA = aaAST;
+    }
 
-  public Object visit (Visitor v, Object o) {
-    return v.visitMultipleArrayAggregate(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitMultipleArrayAggregate(this, o);
+    }
 
-  public Expression E;
-  public ArrayAggregate AA;
+    public Expression E;
+    public ArrayAggregate AA;
 }

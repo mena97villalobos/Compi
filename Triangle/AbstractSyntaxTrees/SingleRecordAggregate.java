@@ -18,17 +18,17 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class SingleRecordAggregate extends RecordAggregate {
 
-  public SingleRecordAggregate (Identifier iAST, Expression eAST,
-                         SourcePosition thePosition) {
-    super (thePosition);
-    I = iAST;
-    E = eAST;
-  }
+    public SingleRecordAggregate(Identifier iAST, Expression eAST,
+                                 SourcePosition thePosition) {
+        super(thePosition);
+        I = iAST;
+        E = eAST;
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitSingleRecordAggregate(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitSingleRecordAggregate(this, o);
+    }
 
-  public Identifier I;
-  public Expression E;
+    public Identifier I;
+    public Expression E;
 }

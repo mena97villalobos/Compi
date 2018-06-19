@@ -16,16 +16,16 @@ package Triangle.CodeGenerator;
 
 public class Field extends RuntimeEntity {
 
-  public Field () {
-    super ();
-    fieldOffset = 0;
-  }
+    public Field() {
+        super();
+        fieldOffset = 0;
+    }
 
-  public Field (int size, int fieldOffset) {
-    super (size);
-    this.fieldOffset = fieldOffset;
-  }
+    public Field(int size, int fieldOffset) {
+        super(size);
+        this.fieldOffset = fieldOffset;
+    }
 
-  public int fieldOffset;
+    public int fieldOffset;
 
 }

@@ -18,10 +18,10 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public abstract class RecordAggregate extends AST {
 
-  public RecordAggregate (SourcePosition thePosition) {
-    super (thePosition);
-    type = null;
-  }
+    public RecordAggregate(SourcePosition thePosition) {
+        super(thePosition);
+        type = null;
+    }
 
-  public FieldTypeDenoter type;
+    public FieldTypeDenoter type;
 }

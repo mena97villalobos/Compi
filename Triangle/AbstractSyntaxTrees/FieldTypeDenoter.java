@@ -18,9 +18,9 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public abstract class FieldTypeDenoter extends TypeDenoter {
 
-  public FieldTypeDenoter(SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public FieldTypeDenoter(SourcePosition thePosition) {
+        super(thePosition);
+    }
 
-  public abstract boolean equals (Object obj);
+    public abstract boolean equals(Object obj);
 }

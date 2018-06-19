@@ -25,71 +25,71 @@
 package Triangle.SyntacticAnalyzer;
 
 
-final class Token extends Object {
-    protected int kind;
+final class Token {
+    int kind;
     protected String spelling;
-    protected SourcePosition position;
+    SourcePosition position;
 
-    public static final int
+    static final int
 
-    // literals, identifiers, operators...
-    INTLITERAL = 0,
-    CHARLITERAL = 1,
-    IDENTIFIER = 2,
-    OPERATOR = 3,
+            // literals, identifiers, operators...
+            INTLITERAL = 0,
+            CHARLITERAL = 1,
+            IDENTIFIER = 2,
+            OPERATOR = 3,
 
-    // reserved words - must be in alphabetical order...
-    AND = 4, //PROYECTO 1
-    ARRAY = 5,
-    //BEGIN		= 5, SE ELIMINA PROYECTO 1
-    CONST = 6,
-    DO = 7,
-    ELSE = 8,
-    ELSIF = 9,  //PROYECTO 1
-    END = 10,
-    FOR = 11,
-    FUNC = 12, //PROYECTO 1
-    IF = 13,
-    IN = 14,
-    LET = 15,
-    LOOP = 16, //PROYECTO 1
-    NOTHING = 17, //PROYECTO 1
-    OF = 18,
-    PRIVATE = 19, //PROYECTO 1
-    PROC = 20,
-    REC = 21, //PROYECTO 1
-    RECORD = 22,
-    THEN = 23,
-    TO = 24, //PROYECTO 1
-    TYPE = 25,
-    UNTIL = 26, //PROYECTO 1
-    VAR = 27,
-    WHILE = 28,
+            // reserved words - must be in alphabetical order...
+            AND = 4, //PROYECTO 1
+            ARRAY = 5,
+            //BEGIN		= 5, SE ELIMINA PROYECTO 1
+            CONST = 6,
+            DO = 7,
+            ELSE = 8,
+            ELSIF = 9,  //PROYECTO 1
+            END = 10,
+            FOR = 11,
+            FUNC = 12, //PROYECTO 1
+            IF = 13,
+            IN = 14,
+            LET = 15,
+            LOOP = 16, //PROYECTO 1
+            NOTHING = 17, //PROYECTO 1
+            OF = 18,
+            PRIVATE = 19, //PROYECTO 1
+            PROC = 20,
+            REC = 21, //PROYECTO 1
+            RECORD = 22,
+            THEN = 23,
+            TO = 24, //PROYECTO 1
+            TYPE = 25,
+            UNTIL = 26, //PROYECTO 1
+            VAR = 27,
+            WHILE = 28,
 
-    // punctuation...
-    DOT = 29,
-    COLON = 30,
-    SEMICOLON = 31,
-    COMMA = 32,
-    BECOMES = 33,
-    IS = 34,
-    DOUBLE_DOTS = 35, // PROYECTO 1
+            // punctuation...
+            DOT = 29,
+            COLON = 30,
+            SEMICOLON = 31,
+            COMMA = 32,
+            BECOMES = 33,
+            IS = 34,
+            DOUBLE_DOTS = 35, // PROYECTO 1
 
-    // brackets...
-    LPAREN = 36,
-    RPAREN = 37,
-    LBRACKET = 38,
-    RBRACKET = 39,
-    LCURLY = 40,
-    RCURLY = 41,
+            // brackets...
+            LPAREN = 36,
+            RPAREN = 37,
+            LBRACKET = 38,
+            RBRACKET = 39,
+            LCURLY = 40,
+            RCURLY = 41,
 
-    // special tokens...
-    EOT = 42,
-    ERROR = 43;
+            // special tokens...
+            EOT = 42,
+            ERROR = 43;
 
     private final static int
-    firstReservedWord = Token.AND, //Token.ARRAY, Cambia por proyecto 1, se agrega token AND antes de ARRAY
-    lastReservedWord  =Token.WHILE;
+            firstReservedWord = Token.AND, //Token.ARRAY, Cambia por proyecto 1, se agrega token AND antes de ARRAY
+            lastReservedWord = Token.WHILE;
 
     private static String[] tokenTable = new String[]{
             "<int>",
@@ -141,7 +141,7 @@ final class Token extends Object {
 
 // Token classes...
 
-    public Token(int kind, String spelling, SourcePosition position) {
+    Token(int kind, String spelling, SourcePosition position) {
         if (kind == Token.IDENTIFIER) {
             int currentKind = firstReservedWord;
             boolean searching = true;
@@ -163,7 +163,7 @@ final class Token extends Object {
         this.position = position;
     }
 
-    public static String spell(int kind) {
+    static String spell(int kind) {
         return tokenTable[kind];
     }
 
