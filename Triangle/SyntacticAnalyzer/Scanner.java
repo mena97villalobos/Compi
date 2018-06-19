@@ -197,11 +197,10 @@ public final class Scanner {
             case '.':
                 //Proyecto 1: Se modifica este case para soportar la sintaxis de Triangulo Extendido
                 takeIt();
-                if(currentChar == '.') {
+                if (currentChar == '.') {
                     takeIt();
                     return Token.DOUBLE_DOTS;
-                }
-                else
+                } else
                     return Token.DOT;
 
             case ':':

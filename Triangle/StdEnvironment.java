@@ -14,41 +14,35 @@
 
 package Triangle;
 
-import Triangle.AbstractSyntaxTrees.BinaryOperatorDeclaration;
-import Triangle.AbstractSyntaxTrees.ConstDeclaration;
-import Triangle.AbstractSyntaxTrees.FuncDeclaration;
-import Triangle.AbstractSyntaxTrees.ProcDeclaration;
-import Triangle.AbstractSyntaxTrees.TypeDeclaration;
-import Triangle.AbstractSyntaxTrees.TypeDenoter;
-import Triangle.AbstractSyntaxTrees.UnaryOperatorDeclaration;
+import Triangle.AbstractSyntaxTrees.*;
 
 public final class StdEnvironment {
 
-  // These are small ASTs representing standard types.
+    // These are small ASTs representing standard types.
 
-  public static TypeDenoter
-    booleanType, charType, integerType, anyType, errorType;
+    public static TypeDenoter
+            booleanType, charType, integerType, anyType, errorType;
 
-  public static TypeDeclaration
-    booleanDecl, charDecl, integerDecl;
+    public static TypeDeclaration
+            booleanDecl, charDecl, integerDecl;
 
-  // These are small ASTs representing "declarations" of standard entities.
+    // These are small ASTs representing "declarations" of standard entities.
 
-  public static ConstDeclaration
-    falseDecl, trueDecl, maxintDecl;
+    public static ConstDeclaration
+            falseDecl, trueDecl, maxintDecl;
 
-  public static UnaryOperatorDeclaration
-    notDecl;
+    public static UnaryOperatorDeclaration
+            notDecl;
 
-  public static BinaryOperatorDeclaration
-    andDecl, orDecl,
-    addDecl, subtractDecl, multiplyDecl, divideDecl, moduloDecl,
-    equalDecl, unequalDecl, lessDecl, notlessDecl, greaterDecl, notgreaterDecl;
+    public static BinaryOperatorDeclaration
+            andDecl, orDecl,
+            addDecl, subtractDecl, multiplyDecl, divideDecl, moduloDecl,
+            equalDecl, unequalDecl, lessDecl, notlessDecl, greaterDecl, notgreaterDecl;
 
-  public static ProcDeclaration
-    getDecl, putDecl, getintDecl, putintDecl, geteolDecl, puteolDecl, indexcheck; //TODO indexcheck agregado
+    public static ProcDeclaration
+            getDecl, putDecl, getintDecl, putintDecl, geteolDecl, puteolDecl, indexcheck; //Proyecto 3 agregado indexcheck
 
-  public static FuncDeclaration
-    chrDecl, ordDecl, eolDecl, eofDecl;
+    public static FuncDeclaration
+            chrDecl, ordDecl, eolDecl, eofDecl;
 
 }

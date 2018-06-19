@@ -18,17 +18,17 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class IfExpression extends Expression {
 
-  public IfExpression (Expression e1AST, Expression e2AST, Expression e3AST,
-             SourcePosition thePosition) {
-    super (thePosition);
-    E1 = e1AST;
-    E2 = e2AST;
-    E3 = e3AST;
-  }
+    public IfExpression(Expression e1AST, Expression e2AST, Expression e3AST,
+                        SourcePosition thePosition) {
+        super(thePosition);
+        E1 = e1AST;
+        E2 = e2AST;
+        E3 = e3AST;
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitIfExpression(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitIfExpression(this, o);
+    }
 
-  public Expression E1, E2, E3;
+    public Expression E1, E2, E3;
 }

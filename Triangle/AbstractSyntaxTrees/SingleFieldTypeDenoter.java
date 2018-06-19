@@ -18,26 +18,26 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class SingleFieldTypeDenoter extends FieldTypeDenoter {
 
-  public SingleFieldTypeDenoter (Identifier iAST, TypeDenoter tAST,
-                          SourcePosition thePosition) {
-    super (thePosition);
-    I = iAST;
-    T = tAST;
-  }
+    public SingleFieldTypeDenoter(Identifier iAST, TypeDenoter tAST,
+                                  SourcePosition thePosition) {
+        super(thePosition);
+        I = iAST;
+        T = tAST;
+    }
 
-  public Object visit (Visitor v, Object o) {
-    return v.visitSingleFieldTypeDenoter(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitSingleFieldTypeDenoter(this, o);
+    }
 
-  public boolean equals (Object obj) {
-    if (obj != null && obj instanceof SingleFieldTypeDenoter) {
-      SingleFieldTypeDenoter ft = (SingleFieldTypeDenoter) obj;
-      return (this.I.spelling.compareTo(ft.I.spelling) == 0) &&
-              this.T.equals(ft.T);
-    } else
-      return false;
-  }
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof SingleFieldTypeDenoter) {
+            SingleFieldTypeDenoter ft = (SingleFieldTypeDenoter) obj;
+            return (this.I.spelling.compareTo(ft.I.spelling) == 0) &&
+                    this.T.equals(ft.T);
+        } else
+            return false;
+    }
 
-  public Identifier I;
-  public TypeDenoter T;
+    public Identifier I;
+    public TypeDenoter T;
 }

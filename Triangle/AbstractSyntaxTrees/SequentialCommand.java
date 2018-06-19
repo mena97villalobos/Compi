@@ -18,15 +18,15 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class SequentialCommand extends Command {
 
-  public SequentialCommand (Command c1AST, Command c2AST, SourcePosition thePosition) {
-    super (thePosition);
-    C1 = c1AST;
-    C2 = c2AST;
-  }
+    public SequentialCommand(Command c1AST, Command c2AST, SourcePosition thePosition) {
+        super(thePosition);
+        C1 = c1AST;
+        C2 = c2AST;
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitSequentialCommand(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitSequentialCommand(this, o);
+    }
 
-  public Command C1, C2;
+    public Command C1, C2;
 }

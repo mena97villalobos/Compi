@@ -18,21 +18,23 @@ import Triangle.AbstractSyntaxTrees.Declaration;
 
 public class IdEntry {
 
-  protected String id;
-  protected Declaration attr;
-  protected int level;
-  protected IdEntry previous;
-  protected boolean isPrivate = false;
+    String id;
+    Declaration attr;
+    protected int level;
+    IdEntry previous;
+    //Proyecto 3 agregado para identificar entradas privadas en la tabla de identificación
+    boolean isPrivate = false;
 
-  IdEntry (String id, Declaration attr, int level, IdEntry previous) {
-    this.id = id;
-    this.attr = attr;
-    this.level = level;
-    this.previous = previous;
-  }
+    IdEntry(String id, Declaration attr, int level, IdEntry previous) {
+        this.id = id;
+        this.attr = attr;
+        this.level = level;
+        this.previous = previous;
+    }
 
-  public void setIsPrivate(boolean isPrivate){
-    this.isPrivate = isPrivate;
-  }
+    //Proyecto 3
+    void setIsPrivate(boolean isPrivate) {
+        this.isPrivate = isPrivate;
+    }
 
 }

@@ -6,7 +6,7 @@ public class ElsifCommand extends Command {
 
     public ElsifCommand(Expression eAST, Command c1AST, Command c2AST,
                         SourcePosition thePosition) {
-        super (thePosition);
+        super(thePosition);
         E = eAST;
         C1 = c1AST; //Comand del elsif
         C2 = c2AST;

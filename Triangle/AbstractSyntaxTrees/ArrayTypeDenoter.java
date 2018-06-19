@@ -18,32 +18,32 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class ArrayTypeDenoter extends TypeDenoter {
 
-  public ArrayTypeDenoter (IntegerLiteral ilAST, TypeDenoter tAST,
-                    SourcePosition thePosition) {
-    super (thePosition);
-    IL = ilAST;
-    T = tAST;
-  }
-
-  public Object visit(Visitor v, Object o) {
-    return v.visitArrayTypeDenoter(this, o);
-  }
-
-  public boolean equals (Object obj) {
-    if (obj instanceof ErrorTypeDenoter)
-      return true;
-    else if (obj instanceof ArrayTypeDenoter)
-      return this.IL.spelling.compareTo(((ArrayTypeDenoter) obj).IL.spelling) == 0 &&
-             this.T.equals(((ArrayTypeDenoter) obj).T);
-    else if(obj instanceof ArrayTypeDenoterStatic){
-      ArrayTypeDenoterStatic arrayTypeDenoterStatic = (ArrayTypeDenoterStatic) obj;
-      int campos = Integer.parseInt(arrayTypeDenoterStatic.IL2.spelling) - Integer.parseInt(arrayTypeDenoterStatic.IL.spelling) + 1;
-      return campos == Integer.parseInt(this.IL.spelling) && this.T.equals(arrayTypeDenoterStatic.T);
+    public ArrayTypeDenoter(IntegerLiteral ilAST, TypeDenoter tAST,
+                            SourcePosition thePosition) {
+        super(thePosition);
+        IL = ilAST;
+        T = tAST;
     }
-    else
-      return false;
-  }
 
-  public IntegerLiteral IL;
-  public TypeDenoter T;
+    public Object visit(Visitor v, Object o) {
+        return v.visitArrayTypeDenoter(this, o);
+    }
+
+    public boolean equals(Object obj) {
+        //Proyecto 3 modificado para soportar comparación contra ArrayTypeDenoterStatic
+        if (obj instanceof ErrorTypeDenoter)
+            return true;
+        else if (obj instanceof ArrayTypeDenoter)
+            return this.IL.spelling.compareTo(((ArrayTypeDenoter) obj).IL.spelling) == 0 &&
+                    this.T.equals(((ArrayTypeDenoter) obj).T);
+        else if (obj instanceof ArrayTypeDenoterStatic) {
+            ArrayTypeDenoterStatic arrayTypeDenoterStatic = (ArrayTypeDenoterStatic) obj;
+            int campos = Integer.parseInt(arrayTypeDenoterStatic.IL2.spelling) - Integer.parseInt(arrayTypeDenoterStatic.IL.spelling) + 1;
+            return campos == Integer.parseInt(this.IL.spelling) && this.T.equals(arrayTypeDenoterStatic.T);
+        } else
+            return false;
+    }
+
+    public IntegerLiteral IL;
+    public TypeDenoter T;
 }

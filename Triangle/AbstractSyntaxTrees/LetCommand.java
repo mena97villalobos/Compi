@@ -18,16 +18,16 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class LetCommand extends Command {
 
-  public LetCommand (Declaration dAST, Command cAST, SourcePosition thePosition) {
-    super (thePosition);
-    D = dAST;
-    C = cAST;
-  }
+    public LetCommand(Declaration dAST, Command cAST, SourcePosition thePosition) {
+        super(thePosition);
+        D = dAST;
+        C = cAST;
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitLetCommand(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitLetCommand(this, o);
+    }
 
-  public Declaration D;
-  public Command C;
+    public Declaration D;
+    public Command C;
 }

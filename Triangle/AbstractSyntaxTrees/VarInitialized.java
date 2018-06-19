@@ -8,7 +8,7 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 public class VarInitialized extends Declaration {
 
     public VarInitialized(Identifier iAST, Expression eAST, SourcePosition thePosition) {
-        super (thePosition);
+        super(thePosition);
         I = iAST;
         E = eAST;
     }

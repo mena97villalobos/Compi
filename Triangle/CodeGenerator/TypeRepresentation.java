@@ -16,8 +16,8 @@ package Triangle.CodeGenerator;
 
 public class TypeRepresentation extends RuntimeEntity {
 
-  public TypeRepresentation (int size) {
-    super(size);
-  }
+    public TypeRepresentation(int size) {
+        super(size);
+    }
 
 }

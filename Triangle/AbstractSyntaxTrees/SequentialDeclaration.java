@@ -18,16 +18,16 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class SequentialDeclaration extends Declaration {
 
-  public SequentialDeclaration (Declaration d1AST, Declaration d2AST,
-                       SourcePosition thePosition) {
-    super (thePosition);
-    D1 = d1AST;
-    D2 = d2AST;
-  }
+    public SequentialDeclaration(Declaration d1AST, Declaration d2AST,
+                                 SourcePosition thePosition) {
+        super(thePosition);
+        D1 = d1AST;
+        D2 = d2AST;
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitSequentialDeclaration(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitSequentialDeclaration(this, o);
+    }
 
-  public Declaration D1, D2;
+    public Declaration D1, D2;
 }

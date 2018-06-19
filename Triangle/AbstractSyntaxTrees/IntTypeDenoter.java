@@ -18,18 +18,18 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class IntTypeDenoter extends TypeDenoter {
 
-  public IntTypeDenoter (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public IntTypeDenoter(SourcePosition thePosition) {
+        super(thePosition);
+    }
 
-  public Object visit (Visitor v, Object o) {
-    return v.visitIntTypeDenoter(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitIntTypeDenoter(this, o);
+    }
 
-  public boolean equals (Object obj) {
-    if (obj != null && obj instanceof ErrorTypeDenoter)
-      return true;
-    else
-      return (obj != null && obj instanceof IntTypeDenoter);
-  }
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof ErrorTypeDenoter)
+            return true;
+        else
+            return (obj != null && obj instanceof IntTypeDenoter);
+    }
 }

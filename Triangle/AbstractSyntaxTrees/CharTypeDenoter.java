@@ -18,18 +18,18 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class CharTypeDenoter extends TypeDenoter {
 
-  public CharTypeDenoter (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public CharTypeDenoter(SourcePosition thePosition) {
+        super(thePosition);
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitCharTypeDenoter(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitCharTypeDenoter(this, o);
+    }
 
-  public boolean equals (Object obj) {
-    if (obj != null && obj instanceof ErrorTypeDenoter)
-      return true;
-    else
-      return (obj != null && obj instanceof CharTypeDenoter);
-  }
+    public boolean equals(Object obj) {
+        if (obj != null && obj instanceof ErrorTypeDenoter)
+            return true;
+        else
+            return (obj != null && obj instanceof CharTypeDenoter);
+    }
 }

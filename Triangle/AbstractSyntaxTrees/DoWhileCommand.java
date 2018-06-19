@@ -4,8 +4,8 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class DoWhileCommand extends Command {
 
-    public DoWhileCommand (Command cAST, Expression eAST, SourcePosition thePosition) {
-        super (thePosition);
+    public DoWhileCommand(Command cAST, Expression eAST, SourcePosition thePosition) {
+        super(thePosition);
         E = eAST;
         C = cAST;
     }

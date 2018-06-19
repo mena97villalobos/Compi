@@ -16,16 +16,16 @@ package Triangle.CodeGenerator;
 
 public class KnownValue extends RuntimeEntity {
 
-  public KnownValue () {
-    super();
-    value = 0;
-  }
+    public KnownValue() {
+        super();
+        value = 0;
+    }
 
-  public KnownValue (int size, int value) {
-    super(size);
-    this.value = value;
-  }
+    public KnownValue(int size, int value) {
+        super(size);
+        this.value = value;
+    }
 
-  public int value;
+    public int value;
 
 }

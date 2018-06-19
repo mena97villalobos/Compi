@@ -18,11 +18,11 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class EmptyActualParameterSequence extends ActualParameterSequence {
 
-  public EmptyActualParameterSequence (SourcePosition thePosition) {
-    super (thePosition);
-  }
+    public EmptyActualParameterSequence(SourcePosition thePosition) {
+        super(thePosition);
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitEmptyActualParameterSequence(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitEmptyActualParameterSequence(this, o);
+    }
 }

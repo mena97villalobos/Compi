@@ -1,14 +1,11 @@
 package Triangle.AbstractSyntaxTrees;
 
-import Triangle.AbstractSyntaxTrees.Command;
-import Triangle.AbstractSyntaxTrees.Expression;
-import Triangle.AbstractSyntaxTrees.Visitor;
 import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class DoUntilCommand extends Command {
 
-    public DoUntilCommand (Command cAST, Expression eAST, SourcePosition thePosition) {
-        super (thePosition);
+    public DoUntilCommand(Command cAST, Expression eAST, SourcePosition thePosition) {
+        super(thePosition);
         E = eAST;
         C = cAST;
     }

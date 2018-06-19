@@ -18,16 +18,16 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class LetExpression extends Expression {
 
-  public LetExpression (Declaration dAST, Expression eAST, SourcePosition thePosition) {
-    super (thePosition);
-    D = dAST;
-    E = eAST;
-  }
+    public LetExpression(Declaration dAST, Expression eAST, SourcePosition thePosition) {
+        super(thePosition);
+        D = dAST;
+        E = eAST;
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitLetExpression(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitLetExpression(this, o);
+    }
 
-  public Declaration D;
-  public Expression E;
+    public Declaration D;
+    public Expression E;
 }

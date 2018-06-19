@@ -18,25 +18,25 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class ConstFormalParameter extends FormalParameter {
 
-  public ConstFormalParameter (Identifier iAST, TypeDenoter tAST,
-                        SourcePosition thePosition) {
-    super (thePosition);
-    I = iAST;
-    T = tAST;
-  }
+    public ConstFormalParameter(Identifier iAST, TypeDenoter tAST,
+                                SourcePosition thePosition) {
+        super(thePosition);
+        I = iAST;
+        T = tAST;
+    }
 
-  public Object visit(Visitor v, Object o) {
-    return v.visitConstFormalParameter(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitConstFormalParameter(this, o);
+    }
 
-  public Identifier I;
-  public TypeDenoter T;
+    public Identifier I;
+    public TypeDenoter T;
 
-  public boolean equals (Object fpAST) {
-  	if (fpAST instanceof ConstFormalParameter) {
-  	  ConstFormalParameter cfpAST = (ConstFormalParameter) fpAST;
-  	  return T.equals(cfpAST.T);
-  	} else
-  	  return false;
-  }
+    public boolean equals(Object fpAST) {
+        if (fpAST instanceof ConstFormalParameter) {
+            ConstFormalParameter cfpAST = (ConstFormalParameter) fpAST;
+            return T.equals(cfpAST.T);
+        } else
+            return false;
+    }
 }

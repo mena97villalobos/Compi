@@ -18,15 +18,15 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class SingleArrayAggregate extends ArrayAggregate {
 
-  public SingleArrayAggregate (Expression eAST,
-                        SourcePosition thePosition) {
-    super (thePosition);
-    E = eAST;
-  }
+    public SingleArrayAggregate(Expression eAST,
+                                SourcePosition thePosition) {
+        super(thePosition);
+        E = eAST;
+    }
 
-  public Object visit (Visitor v, Object o) {
-    return v.visitSingleArrayAggregate(this, o);
-  }
+    public Object visit(Visitor v, Object o) {
+        return v.visitSingleArrayAggregate(this, o);
+    }
 
-  public Expression E;
+    public Expression E;
 }
